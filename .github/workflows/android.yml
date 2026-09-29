@@ -1,41 +1,33 @@
-rs ago in 5m 51s
-1s
-0s
-1s
-2s
-5m 43s
-#     Python2_ROOT_DIR = '/opt/hostedtoolcache/Python/3.11.16/x64'
-#     ANDROID_NDK_ROOT = '/usr/local/lib/android/sdk/ndk/27.3.13750724'
-#     CHROME_BIN = '/usr/bin/google-chrome'
-#     GITHUB_RETENTION_DAYS = '90'
-#     JOURNAL_STREAM = '9:14646'
-#     RUNNER_WORKSPACE = '/home/runner/work/quotex-direct-market-bot'
-#     GITHUB_ACTION_REPOSITORY = ''
-#     HCA_CLOUD_PROVIDER = 'azure'
-#     PATH = '/home/runner/.buildozer/android/platform/apache-ant-1.9.4/bin:/opt/hostedtoolcache/Python/3.11.16/x64/bin:/opt/hostedtoolcache/Python/3.11.16/x64:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'
-#     GITHUB_BASE_REF = ''
-#     GHCUP_INSTALL_BASE_PREFIX = '/usr/local'
-#     CI = 'true'
-#     SWIFT_PATH = '/usr/share/swift/usr/bin'
-#     ImageOS = 'ubuntu24'
-#     GITHUB_REPOSITORY_OWNER = 'mawali545'
-#     GITHUB_HEAD_REF = ''
-#     GITHUB_ACTION_REF = ''
-#     ENABLE_RUNNER_TRACING = 'true'
-#     GITHUB_WORKFLOW = 'Build Android APK'
-#     DEBIAN_FRONTEND = 'noninteractive'
-#     GITHUB_OUTPUT = '/home/runner/work/_temp/_runner_file_commands/set_output_86863dec-c1a9-42e3-a160-66ace2729543'
-#     AGENT_TOOLSDIRECTORY = '/opt/hostedtoolcache'
-#     _ = '/opt/hostedtoolcache/Python/3.11.16/x64/bin/buildozer'
-#     PACKAGES_PATH = '/home/runner/.buildozer/android/packages'
-#     ANDROIDSDK = '/home/runner/.buildozer/android/platform/android-sdk'
-#     ANDROIDNDK = '/home/runner/.buildozer/android/platform/android-ndk-r28c'
-#     ANDROIDAPI = '35'
-#     ANDROIDMINAPI = '24'
-# 
-# Buildozer failed to execute the last command
-# The error might be hidden in the log above this error
-# Please read the full log, and search for it before
-# raising an issue with buildozer itself.
-# In case of a bug report, please add a full log with log_level = 2
-Error: Process completed with exit code 1.
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool libltdl-dev libffi-dev pkg-config cmake gettext build-essential
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Build APK
+        run: buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: V4-APK
+          path: bin/*.apk
