@@ -36,6 +36,7 @@ def normalize(raw: Any) -> list[Candle]:
             if hh>=max(oo,cc) and ll<=min(oo,cc) and hh>=ll: out.append(Candle(int(tt),oo,hh,ll,cc))
     return [c for _,c in sorted({c.t:c for c in out}.items())]
 
+
 def ema(v:list[float], n:int)->float|None:
     if len(v)<n:return None
     e=sum(v[:n])/n; k=2/(n+1)
@@ -139,3 +140,58 @@ def analyze(cs:list[Candle],min_score:int=5)->Signal|None:
     if body<0.08:reasons.append('small candle')
     sig='UP' if score>=min_score else 'DOWN' if score<=-min_score else 'WAIT'
     return Signal(sig,min(100,int(abs(score)/10*100)),score,tuple(reasons[-8:]),last.c,r,a,e5,e13,e21,m,ms,bu,bm,bl,support,resistance)
+
+
+def combine_signals(direct: Signal|None, screen_signal: str|None, screen_confidence: int = 0) -> tuple[str, int, str]:
+    """Cross-check direct market signal with an optional screen-chart signal.
+    The direct market engine remains primary. Screen data is only allowed to
+    confirm it; disagreement or weak screen evidence produces WAIT.
+    """
+    if direct is None:
+        return 'WAIT', 0, 'Direct market data not ready.'
+    ss=(screen_signal or 'WAIT').upper()
+    if ss not in ('UP','DOWN','WAIT'):
+        ss='WAIT'
+    if ss == 'WAIT' or screen_confidence < 55:
+        return direct.signal, direct.strength, 'Direct market primary; screen chart not reliable enough to confirm.'
+    if direct.signal == ss and direct.signal != 'WAIT':
+        strength=min(100, max(direct.strength, screen_confidence) + 10)
+        return direct.signal, strength, 'Direct market + screen chart agree.'
+    if direct.signal != 'WAIT' and direct.signal != ss:
+        return 'WAIT', min(direct.strength, screen_confidence), 'Direct market and screen chart conflict.'
+    return 'WAIT', 0, 'Insufficient agreement.'
+
+def analyze_screen_frame_rgb(rgb, width: int, height: int) -> tuple[str, int, str]:
+    """Lightweight chart-color assist. It never replaces OHLC analysis.
+    It looks for repeated green/red candle-like vertical regions in the
+    supplied RGB frame. Unknown/ambiguous frames return WAIT.
+    """
+    try:
+        import numpy as np
+        a=np.asarray(rgb)
+        if a.ndim != 3 or a.shape[0] < 40 or a.shape[1] < 40:
+            return 'WAIT', 0, 'Screen frame too small.'
+        # Ignore UI edges and sample the central chart area.
+        y0,y1=int(height*.15),int(height*.82)
+        x0,x1=int(width*.05),int(width*.95)
+        q=a[y0:y1,x0:x1,:3].astype('int16')
+        r,g,b=q[:,:,0],q[:,:,1],q[:,:,2]
+        green=((g-r)>28)&((g-b)>8)&(g>75)
+        red=((r-g)>28)&((r-b)>8)&(r>75)
+        # Count per-column candle-like pixels, then compare recent/right side
+        # versus the left side. This is deliberately conservative.
+        gs=green.sum(axis=0); rs=red.sum(axis=0)
+        mid=max(1,len(gs)//2)
+        gl=float(gs[mid:].sum()); gr=float(rs[mid:].sum())
+        total=gl+gr
+        if total < 80:
+            return 'WAIT', 0, 'No reliable candle colors detected.'
+        if gl/total >= .62:
+            conf=min(85,int(55+35*(gl/total-.62)/.38))
+            return 'UP',conf,'Screen chart shows stronger recent bullish candle color.'
+        if gr/total >= .62:
+            conf=min(85,int(55+35*(gr/total-.62)/.38))
+            return 'DOWN',conf,'Screen chart shows stronger recent bearish candle color.'
+        return 'WAIT', 40, 'Screen chart colors are mixed.'
+    except Exception as e:
+        return 'WAIT',0,f'Screen assist unavailable: {e}'
