@@ -1,13 +1,13 @@
 [app]
-title = Direct Market Signal Bot
-package.name = directmarketsignal
-package.domain = org.directmarketsignal
+title = AMH110
+package.name = amh110
+package.domain = org.amh110
 source.dir = .
 source.include_exts = py,kv,png,jpg,txt
 source.exclude_dirs = tests,bin,.git,.buildozer,__pycache__
-version = 0.6.0
-requirements = python3,kivy,websockets==12.0,httpx==0.27.2,httpcore==1.0.7,anyio==4.8.0,h11==0.14.0,sniffio==1.3.1,idna==3.10,typing_extensions==4.12.2,beautifulsoup4==4.13.4,certifi==2025.7.14,fake-useragent==2.2.0,pyfiglet==1.0.2,rich==13.9.4,git+https://github.com/cleitonleonel/pyquotex.git@70fca1575b9c3e8f45aaaa08a54baf67adbdac68
-orientation = all
+version = 1.0.0
+requirements = python3,kivy,beautifulsoup4,certifi,fake-useragent,pyfiglet,rich,websockets==12.0,httpx==0.27.2,httpcore==1.0.7,anyio==4.8.0,h11==0.14.0,sniffio==1.3.1,idna==3.10,typing_extensions==4.12.2,git+https://github.com/cleitonleonel/pyquotex.git@70fca1575b9c3e8f45aaaa08a54baf67adbdac68
+orientation = portrait
 fullscreen = 0
 android.api = 34
 android.minapi = 24
