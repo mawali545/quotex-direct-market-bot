@@ -1,4 +1,4 @@
-__version__ = '0.5.5'
+__version__ = '0.5.6'
 import asyncio, threading, os, time
 from kivy.app import App
 from kivy.clock import Clock
@@ -124,10 +124,59 @@ class BotApp(App):
             self.ui('ERROR', 'WAIT', repr(e))
     async def async_worker(self,Quotex,email,password,asset,period):
         native_period = period
-        client=Quotex(email=email,password=password,lang='en',host=os.getenv('QUOTEX_HOST','qxbroker.com'),period_default=native_period)
-        ok,msg=await client.connect()
-        if not ok: self.ui('CONNECTION FAILED','WAIT',str(msg)); return
-        self.ui('CONNECTED','WAIT',f'Receiving {period}s closed candles...')
+        # Android/mobile networks can reset a TLS connection to one Quotex
+        # hostname while another supported hostname is reachable. Try the
+        # configured host first, then the documented alternate hosts.
+        configured = os.getenv('QUOTEX_HOST', '').strip()
+        hosts = [configured] if configured else []
+        for h in ('qxbroker.com', 'quotex.com', 'qxbroker.io', 'quotex.io'):
+            if h not in hosts:
+                hosts.append(h)
+
+        # A normal browser UA is supported by the current PyQuotex API and is
+        # preferable to its old placeholder UA on mobile networks.
+        user_agent = (
+            'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 '
+            '(KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36'
+        )
+
+        client = None
+        ok = False
+        msg = 'Connection failed.'
+        tried = []
+        for host in hosts:
+            if self.stop_event.is_set():
+                return
+            self.ui('CONNECTING...', 'WAIT', f'Connecting to {host}...')
+            current = None
+            try:
+                current = Quotex(
+                    email=email, password=password, lang='en',
+                    host=host, user_agent=user_agent,
+                    period_default=native_period
+                )
+                ok, msg = await current.connect()
+                if ok:
+                    client = current
+                    break
+                tried.append(f'{host}: {msg}')
+            except Exception as ex:
+                tried.append(f'{host}: {type(ex).__name__}: {ex}')
+                msg = str(ex)
+            finally:
+                if current is not None and not ok:
+                    try:
+                        await current.close()
+                    except Exception:
+                        pass
+            await asyncio.sleep(0.8)
+
+        if not ok or client is None:
+            detail = ' | '.join(tried[-4:]) if tried else str(msg)
+            self.ui('CONNECTION FAILED', 'WAIT', detail)
+            return
+
+        self.ui('CONNECTED', 'WAIT', f'Receiving {period}s closed candles via {client.host}...')
         raw=normalize(await client.get_historical_candles(asset,amount_of_seconds=7200,period=native_period,max_workers=2))
         candles = raw
         try:
