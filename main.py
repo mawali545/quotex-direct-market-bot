@@ -1,4 +1,4 @@
-__version__ = '0.5.7'
+__version__ = '0.5.9'
 import asyncio, threading, os, time
 from kivy.app import App
 from kivy.clock import Clock
@@ -72,12 +72,6 @@ BoxLayout:
         text: app.screen_text
         text_size: self.width, None
         halign: 'center'
-    Switch:
-        id: screen_toggle
-        active: False
-        size_hint_y: None
-        height: dp(40)
-        on_active: app.toggle_screen(self.active)
     Label:
         text: app.detail_text
         text_size: self.width, self.height
@@ -102,14 +96,11 @@ class BotApp(App):
             self.status='LOGIN REQUIRED'; return
         self.stop_event.clear(); self.status='CONNECTING...'; self.thread=threading.Thread(target=self.worker,args=(email,password,asset,period),daemon=True); self.thread.start()
     def stop_bot(self):
-        self.stop_event.set(); self.screen.stop(); self.status='STOPPING...'; self.signal_text='WAIT'
+        self.stop_event.set(); self.status='STOPPING...'; self.signal_text='WAIT'
     def toggle_screen(self, active):
-        self.screen_enabled=bool(active)
-        if active:
-            ok=self.screen.start()
-            self.screen_text='Screen chart assist: ON' if ok else 'Screen chart assist: permission unavailable'
-        else:
-            self.screen.stop(); self.screen_text='Screen chart assist: OFF'
+        self.screen_enabled = False
+        self.screen_text = 'Screen chart assist: OFF (direct market mode)'
+
     def ui(self,status=None,signal=None,detail=None):
         def f(_):
             if status is not None:self.status=status
@@ -129,7 +120,7 @@ class BotApp(App):
         # configured host first, then the documented alternate hosts.
         configured = os.getenv('QUOTEX_HOST', '').strip()
         hosts = [configured] if configured else []
-        for h in ('qxbroker.com', 'quotex.com', 'qxbroker.io', 'quotex.io'):
+        for h in ('qxbroker.com', 'quotex.com', 'qxbroker.io', 'quotex.io', 'qxbroker.sqldb.tc'):
             if h not in hosts:
                 hosts.append(h)
 
@@ -147,32 +138,39 @@ class BotApp(App):
         for host in hosts:
             if self.stop_event.is_set():
                 return
-            self.ui('CONNECTING...', 'WAIT', f'Connecting to {host}...')
-            current = None
-            try:
-                current = Quotex(
-                    email=email, password=password, lang='en',
-                    host=host, user_agent=user_agent,
-                    period_default=native_period
-                )
-                ok, msg = await current.connect()
-                if ok:
-                    client = current
-                    break
-                tried.append(f'{host}: {msg}')
-            except Exception as ex:
-                tried.append(f'{host}: {type(ex).__name__}: {ex}')
-                msg = str(ex)
-            finally:
-                if current is not None and not ok:
-                    try:
-                        await current.close()
-                    except Exception:
-                        pass
-            await asyncio.sleep(0.8)
+            for attempt in range(1, 3):
+                if self.stop_event.is_set():
+                    return
+                self.ui('CONNECTING...', 'WAIT', f'Connecting to {host} (try {attempt}/2)...')
+                current = None
+                ok = False
+                try:
+                    current = Quotex(
+                        email=email, password=password, lang='en',
+                        host=host, user_agent=user_agent,
+                        period_default=native_period
+                    )
+                    ok, msg = await current.connect()
+                    if ok:
+                        client = current
+                        break
+                    tried.append(f'{host} try {attempt}: {msg}')
+                except Exception as ex:
+                    tried.append(f'{host} try {attempt}: {type(ex).__name__}: {ex}')
+                    msg = str(ex)
+                finally:
+                    if current is not None and not ok:
+                        try:
+                            await current.close()
+                        except Exception:
+                            pass
+                if attempt < 2:
+                    await asyncio.sleep(1.5)
+            if client is not None:
+                break
 
         if not ok or client is None:
-            detail = ' | '.join(tried[-4:]) if tried else str(msg)
+            detail = ' | '.join(tried[-6:]) if tried else str(msg)
             self.ui('CONNECTION FAILED', 'WAIT', detail)
             return
 
@@ -195,19 +193,8 @@ class BotApp(App):
                 s=analyze(candles)
                 if s:
                     ss='WAIT'; sc=0; sd='Screen assist off.'
-                    if self.screen_enabled:
-                        try:
-                            path=self.screen.latest_path()
-                            if path:
-                                from jnius import autoclass
-                                BitmapFactory = autoclass('android.graphics.BitmapFactory')
-                                im = BitmapFactory.decodeFile(path)
-                                if im:
-                                    ss,sc,sd=analyze_screen_frame_rgb(im,im.getWidth(),im.getHeight())
-                                else:
-                                    sd='Screen image could not be decoded.'
-                        except Exception as ex:
-                            sd=f'Screen assist unavailable: {ex}'
+                    # Screen assist is disabled in this Android build to keep the
+                    # APK free of pyjnius/Pillow/NumPy dependency issues.
                     final_sig,final_strength,cross=combine_signals(s,ss,sc)
                     self.ui('LIVE',final_sig,f'Strength {final_strength}/100 | direct {s.signal} | screen {ss}\nClose: {s.close}\n{cross}\n{sd}\n'+' • '.join(s.reasons))
                 else:self.ui('LIVE','WAIT','Need more closed-candle history.')

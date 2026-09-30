@@ -4,8 +4,8 @@ package.name = directmarketsignal
 package.domain = org.directmarketsignal
 source.dir = .
 source.include_exts = py,kv,png,jpg,txt
-version = 0.5.7
-requirements = python3,kivy,pyjnius,beautifulsoup4,certifi,curl_cffi,fake-useragent,pyfiglet,rich,git+https://github.com/cleitonleonel/pyquotex.git
+version = 0.5.8
+requirements = python3,kivy,beautifulsoup4,certifi,curl_cffi,fake-useragent,pyfiglet,rich,git+https://github.com/cleitonleonel/pyquotex.git
 orientation = all
 fullscreen = 0
 android.api = 35
@@ -15,7 +15,6 @@ android.permissions = SYSTEM_ALERT_WINDOW,FOREGROUND_SERVICE,POST_NOTIFICATIONS,
 android.accept_sdk_license = True
 p4a.branch = develop
 
-android.add_src = src
 
 [buildozer]
 log_level = 2
