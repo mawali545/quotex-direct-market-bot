@@ -162,36 +162,61 @@ def combine_signals(direct: Signal|None, screen_signal: str|None, screen_confide
     return 'WAIT', 0, 'Insufficient agreement.'
 
 def analyze_screen_frame_rgb(rgb, width: int, height: int) -> tuple[str, int, str]:
-    """Lightweight chart-color assist. It never replaces OHLC analysis.
-    It looks for repeated green/red candle-like vertical regions in the
-    supplied RGB frame. Unknown/ambiguous frames return WAIT.
+    """Lightweight chart-color assist with no NumPy dependency.
+
+    Accepts a PIL Image (preferred) or a 2-D RGB sequence. It samples the
+    chart area sparsely so Android phones do not spend excessive CPU time.
+    Unknown/ambiguous frames return WAIT. Direct OHLC analysis remains primary.
     """
     try:
-        import numpy as np
-        a=np.asarray(rgb)
-        if a.ndim != 3 or a.shape[0] < 40 or a.shape[1] < 40:
+        if width < 40 or height < 40:
             return 'WAIT', 0, 'Screen frame too small.'
-        # Ignore UI edges and sample the central chart area.
-        y0,y1=int(height*.15),int(height*.82)
-        x0,x1=int(width*.05),int(width*.95)
-        q=a[y0:y1,x0:x1,:3].astype('int16')
-        r,g,b=q[:,:,0],q[:,:,1],q[:,:,2]
-        green=((g-r)>28)&((g-b)>8)&(g>75)
-        red=((r-g)>28)&((r-b)>8)&(r>75)
-        # Count per-column candle-like pixels, then compare recent/right side
-        # versus the left side. This is deliberately conservative.
-        gs=green.sum(axis=0); rs=red.sum(axis=0)
-        mid=max(1,len(gs)//2)
-        gl=float(gs[mid:].sum()); gr=float(rs[mid:].sum())
-        total=gl+gr
+
+        if hasattr(rgb, 'getpixel'):
+            getpx = rgb.getpixel
+        else:
+            getpx = lambda xy: rgb[xy[1]][xy[0]]
+
+        y0, y1 = int(height * 0.15), int(height * 0.82)
+        x0, x1 = int(width * 0.05), int(width * 0.95)
+        step = max(2, min(width, height) // 250)
+
+        # Weight the right half more heavily because it usually contains the
+        # most recent candles on a standard trading chart.
+        green_left = green_right = red_left = red_right = 0
+        mid = (x0 + x1) // 2
+
+        for y in range(y0, y1, step):
+            for x in range(x0, x1, step):
+                px = getpx((x, y))
+                if not px or len(px) < 3:
+                    continue
+                r, g, b = int(px[0]), int(px[1]), int(px[2])
+                if (g - r) > 28 and (g - b) > 8 and g > 75:
+                    if x >= mid:
+                        green_right += 1
+                    else:
+                        green_left += 1
+                elif (r - g) > 28 and (r - b) > 8 and r > 75:
+                    if x >= mid:
+                        red_right += 1
+                    else:
+                        red_left += 1
+
+        green = green_right * 2 + green_left
+        red = red_right * 2 + red_left
+        total = green + red
         if total < 80:
             return 'WAIT', 0, 'No reliable candle colors detected.'
-        if gl/total >= .62:
-            conf=min(85,int(55+35*(gl/total-.62)/.38))
-            return 'UP',conf,'Screen chart shows stronger recent bullish candle color.'
-        if gr/total >= .62:
-            conf=min(85,int(55+35*(gr/total-.62)/.38))
-            return 'DOWN',conf,'Screen chart shows stronger recent bearish candle color.'
+
+        green_ratio = green / total
+        red_ratio = red / total
+        if green_ratio >= 0.62:
+            conf = min(85, int(55 + 35 * (green_ratio - 0.62) / 0.38))
+            return 'UP', conf, 'Screen chart shows stronger recent bullish candle color.'
+        if red_ratio >= 0.62:
+            conf = min(85, int(55 + 35 * (red_ratio - 0.62) / 0.38))
+            return 'DOWN', conf, 'Screen chart shows stronger recent bearish candle color.'
         return 'WAIT', 40, 'Screen chart colors are mixed.'
     except Exception as e:
-        return 'WAIT',0,f'Screen assist unavailable: {e}'
+        return 'WAIT', 0, f'Screen assist unavailable: {e}'

@@ -1,4 +1,4 @@
-__version__ = '0.5.0'
+__version__ = '0.5.5'
 import asyncio, threading, os, time
 from kivy.app import App
 from kivy.clock import Clock
