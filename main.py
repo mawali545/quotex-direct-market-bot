@@ -1,4 +1,4 @@
-__version__ = '0.5.6'
+__version__ = '0.5.7'
 import asyncio, threading, os, time
 from kivy.app import App
 from kivy.clock import Clock
@@ -197,11 +197,15 @@ class BotApp(App):
                     ss='WAIT'; sc=0; sd='Screen assist off.'
                     if self.screen_enabled:
                         try:
-                            from PIL import Image
                             path=self.screen.latest_path()
                             if path:
-                                im=Image.open(path).convert('RGB')
-                                ss,sc,sd=analyze_screen_frame_rgb(im,im.width,im.height)
+                                from jnius import autoclass
+                                BitmapFactory = autoclass('android.graphics.BitmapFactory')
+                                im = BitmapFactory.decodeFile(path)
+                                if im:
+                                    ss,sc,sd=analyze_screen_frame_rgb(im,im.getWidth(),im.getHeight())
+                                else:
+                                    sd='Screen image could not be decoded.'
                         except Exception as ex:
                             sd=f'Screen assist unavailable: {ex}'
                     final_sig,final_strength,cross=combine_signals(s,ss,sc)

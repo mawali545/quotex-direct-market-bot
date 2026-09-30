@@ -164,8 +164,8 @@ def combine_signals(direct: Signal|None, screen_signal: str|None, screen_confide
 def analyze_screen_frame_rgb(rgb, width: int, height: int) -> tuple[str, int, str]:
     """Lightweight chart-color assist with no NumPy dependency.
 
-    Accepts a PIL Image (preferred) or a 2-D RGB sequence. It samples the
-    chart area sparsely so Android phones do not spend excessive CPU time.
+    Accepts a PIL-like image, Android Bitmap, or a 2-D RGB sequence. It samples
+    the chart area sparsely so Android phones do not spend excessive CPU time.
     Unknown/ambiguous frames return WAIT. Direct OHLC analysis remains primary.
     """
     try:
@@ -174,6 +174,10 @@ def analyze_screen_frame_rgb(rgb, width: int, height: int) -> tuple[str, int, st
 
         if hasattr(rgb, 'getpixel'):
             getpx = rgb.getpixel
+        elif hasattr(rgb, 'getPixel'):
+            def getpx(xy):
+                value = int(rgb.getPixel(int(xy[0]), int(xy[1]))) & 0xFFFFFFFF
+                return ((value >> 16) & 255, (value >> 8) & 255, value & 255)
         else:
             getpx = lambda xy: rgb[xy[1]][xy[0]]
 
