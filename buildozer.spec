@@ -15,7 +15,7 @@ android.archs = arm64-v8a,armeabi-v7a
 android.permissions = INTERNET,ACCESS_NETWORK_STATE
 android.accept_sdk_license = True
 p4a.branch = develop
-p4a.commit = 9a7694e
+
 p4a.setup_py = false
 
 [buildozer]
