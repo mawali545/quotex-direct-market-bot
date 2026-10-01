@@ -398,7 +398,7 @@ class AMH110(App):
                     )
                     self.loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(self.loop)
-                    ok, reason = self.loop.run_until_complete(q.connect(is_demo=True))
+                    q.set_account_mode("PRACTICE")\n                    ok, reason = self.loop.run_until_complete(q.connect())
                     if not ok:
                         raise RuntimeError(reason or "LOGIN FAILED")
                     self.client = q
