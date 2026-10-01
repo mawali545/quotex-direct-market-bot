@@ -3,16 +3,16 @@
 ## Current locked build stack
 - GitHub Actions runner: Ubuntu 24.04 (pinned; avoids the 2026 ubuntu-latest migration).
 - Buildozer: 1.6.0.
-- Host Python: 3.12.
-- p4a: master/develop-compatible commit `54cf321676712893786d4ccbbefbad3ff2e5930d`, pinned immediately before the p4a PyJNIus 1.7.0 recipe update.
-- Target Python: **3.12.10** explicitly pinned for both `python3` and `hostpython3`; this prevents p4a's current default target Python 3.14.2 from selecting the incompatible PyJNIus path.
+- Host Python: 3.11 (GitHub Actions); p4a target/host Python 3.11.13.
+- p4a: master branch at pinned commit `54cf321676712893786d4ccbbefbad3ff2e5930d`, pinned before the PyJNIus 1.7.0 recipe update.
+- Target Python: **3.11.13** explicitly pinned for both `python3` and `hostpython3`; this avoids the previously observed Python 3.14.2/PyJNIus path.
 - Cython: 0.29.34.
 - Java: 17.
 - Kivy: 2.3.1.
-- PyJNIus: 1.6.1.
+- PyJNIus: p4a recipe pinned by the p4a commit; the app does not independently pin PyJNIus.
 - Android API: 35.
 - Android min API: 24.
-- Android NDK: 28c.
+- Android NDK: 25b.
 - Architecture: arm64-v8a only; `armeabi-v7a` is intentionally removed because it caused the previous PyJNIus 1.7.0 build failure.
 - WebSockets: 14.2.0, matching the pinned PyQuotex source's `additional_headers` API.
 - No numpy, curl_cffi or orjson.
