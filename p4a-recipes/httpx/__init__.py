@@ -17,7 +17,7 @@ class HttpxRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             package = Path("httpx-0.27.2") / "httpx"
             if not package.is_dir():
-                matches = list(Path(".").glob("*/httpx"))
+                matches = [p for p in Path(".").rglob("httpx") if p.is_dir() and (p / "__init__.py").is_file()]
                 if len(matches) == 1:
                     package = matches[0]
             if not package.is_dir():
