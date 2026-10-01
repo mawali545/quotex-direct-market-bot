@@ -45,7 +45,8 @@ assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
 assert 'java-version: "17"' in workflow
 assert "cython==0.29.34" in workflow
 assert "numpy" not in spec and "curl_cffi" not in spec and "orjson" not in spec
-assert "beautifulsoup4" in spec and "typing_extensions" in spec and "certifi" in spec\nassert "charset-normalizer==3.4.3" in spec
+assert "beautifulsoup4" in spec and "typing_extensions" in spec and "certifi" in spec
+assert "charset-normalizer==3.4.3" in spec
 
 # Analysis engine smoke test.
 raw = []
