@@ -1,6 +1,8 @@
 name: AMH110 Final Audit + APK
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
