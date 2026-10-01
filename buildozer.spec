@@ -16,6 +16,7 @@ android.archs = arm64-v8a
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,SYSTEM_ALERT_WINDOW,WAKE_LOCK
 android.accept_sdk_license = True
 p4a.branch = master
+p4a.commit = 54cf321676712893786d4ccbbefbad3ff2e5930d
 p4a.setup_py = false
 
 [buildozer]
