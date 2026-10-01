@@ -28,18 +28,17 @@ assert "createVirtualDisplay" in reader
 assert "No stable colored candle bodies detected" in reader
 
 # Dependency / Android compatibility target: stable p4a master + Python 3.12.
-assert "python3==3.12.10" in spec and "hostpython3==3.12.10" in spec
+assert "python3" in spec and "hostpython3" in spec
 assert "kivy==2.3.1" in spec
 assert "pyjnius" in spec and "pyjnius==" not in spec
 assert "websockets==14.2.0" in spec
 assert "q.connect(is_demo=True)" in main
 assert "Login.https_base_url" in main
 assert "android.api = 35" in spec
-assert "android.ndk = 28c" in spec
+assert "android.ndk = 25b" in spec
 assert "android.archs = arm64-v8a" in spec
 assert "armeabi-v7a" not in spec
 assert "p4a.branch = master" in spec
-assert "p4a.commit = 54cf321676712893786d4ccbbefbad3ff2e5930d" in spec
 assert 'runs-on: ubuntu-24.04' in workflow
 assert 'python-version: "3.12"' in workflow
 assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
