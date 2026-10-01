@@ -1,5 +1,7 @@
 from pathlib import Path
 from shutil import copytree
+import tarfile
+import zipfile
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory
 
@@ -19,7 +21,25 @@ class HttpxRecipe(Recipe):
                 if len(matches) == 1:
                     package = matches[0]
             if not package.is_dir():
-                raise RuntimeError("httpx source did not extract as expected")
+                archives = list(Path(".").glob("*.tar.gz")) + list(Path(".").glob("*.tgz"))
+                for archive in archives:
+                    with tarfile.open(archive, "r:gz") as tf:
+                        tf.extractall(".")
+                    matches = list(Path(".").glob("*/httpx"))
+                    if len(matches) == 1:
+                        package = matches[0]
+                        break
+            if not package.is_dir():
+                archives = list(Path(".").glob("*.whl")) + list(Path(".").glob("*.zip"))
+                for archive in archives:
+                    with zipfile.ZipFile(archive) as zf:
+                        zf.extractall(".")
+                    matches = list(Path(".").glob("*/httpx"))
+                    if len(matches) == 1:
+                        package = matches[0]
+                        break
+            if not package.is_dir():
+                raise RuntimeError("httpx package directory was not found after archive extraction")
             copytree(package, target / "httpx", dirs_exist_ok=True)
 
 
