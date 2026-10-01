@@ -27,8 +27,8 @@ assert "MediaProjectionManager" in reader
 assert "createVirtualDisplay" in reader
 assert "No stable colored candle bodies detected" in reader
 
-# Dependency / Android compatibility target: stable p4a master + Python 3.12.
-assert "python3==3.12.14" in spec and "hostpython3==3.12.14" in spec
+# Dependency / Android compatibility target: stable p4a master + Python 3.11.
+assert "python3==3.11.13" in spec and "hostpython3==3.11.13" in spec
 assert "kivy==2.3.1" in spec
 assert "pyjnius" in spec and "pyjnius==" not in spec
 assert "websockets==14.2.0" in spec
@@ -40,7 +40,7 @@ assert "android.archs = arm64-v8a" in spec
 assert "armeabi-v7a" not in spec
 assert "p4a.branch = master" in spec
 assert 'runs-on: ubuntu-24.04' in workflow
-assert 'python-version: "3.12"' in workflow
+assert 'python-version: "3.11"' in workflow
 assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
 assert 'java-version: "17"' in workflow
 assert "cython==0.29.34" in workflow
