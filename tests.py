@@ -42,6 +42,8 @@ assert "android.archs = arm64-v8a" in spec
 assert "armeabi-v7a" not in spec
 assert "p4a.branch = master" in spec
 assert "p4a.commit = 58d148bf81e312ae890cb7762ccb9f0f877ee7a4" in spec
+assert "pyquotex" in spec and "git+https://github.com/cleitonleonel/pyquotex.git@" not in spec
+assert "p4a.local_recipes = p4a-recipes" in spec
 assert 'runs-on: ubuntu-24.04' in workflow
 assert 'python-version: "3.11"' in workflow
 assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
