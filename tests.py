@@ -39,6 +39,7 @@ assert "android.ndk = 25b" in spec
 assert "android.archs = arm64-v8a" in spec
 assert "armeabi-v7a" not in spec
 assert "p4a.branch = master" in spec
+assert "p4a.commit = 54cf321676712893786d4ccbbefbad3ff2e5930d" in spec
 assert 'runs-on: ubuntu-24.04' in workflow
 assert 'python-version: "3.11"' in workflow
 assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
@@ -46,7 +47,9 @@ assert 'java-version: "17"' in workflow
 assert "cython==0.29.34" in workflow
 assert "numpy" not in spec and "curl_cffi" not in spec and "orjson" not in spec
 assert "beautifulsoup4" in spec and "typing_extensions" in spec and "certifi" in spec
-assert "charset-normalizer>=3.4.3,<4.0.0" in spec
+assert "charset-normalizer==3.4.3" in spec
+assert "charset-normalizer>=3.4.3,<4.0.0" not in spec
+assert ",<" not in spec and ",>" not in spec
 
 # Analysis engine smoke test.
 raw = []
