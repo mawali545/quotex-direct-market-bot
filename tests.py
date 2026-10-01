@@ -32,7 +32,7 @@ assert "python3==3.11.13" in spec and "hostpython3==3.11.13" in spec
 assert "kivy==2.3.1" in spec
 assert "pyjnius" in spec and "pyjnius==" not in spec
 assert "websockets==14.2.0" in spec
-assert "q.connect(is_demo=True)" in main
+assert "q.set_account_mode(\"PRACTICE\")" in main\nassert "q.connect()" in main\nassert "q.connect(is_demo=True)" not in main
 assert "Login.https_base_url" in main
 assert "android.api = 35" in spec
 assert "android.ndk = 25b" in spec
