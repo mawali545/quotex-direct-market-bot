@@ -1,0 +1,62 @@
+name: AMH110 Final Audit + APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Android build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake autopoint libtool libltdl-dev libffi-dev libssl-dev pkg-config zlib1g-dev libncurses-dev libncursesw5-dev libtinfo6 cmake gettext build-essential
+
+      - name: Python build tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "cython==0.29.34" "buildozer==1.6.0"
+
+      - name: Static audit
+        run: |
+          python tests.py
+          python -m compileall -q main.py engine.py screen_reader.py tests.py
+
+      - name: Clean Android cache
+        run: |
+          rm -rf .buildozer bin __pycache__
+
+      - name: Build debug APK
+        run: |
+          buildozer -v android debug 2>&1 | tee build.log
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AMH110-FINAL-APK
+          path: bin/*.apk
+          if-no-files-found: error
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AMH110-FINAL-build-log
+          path: build.log
+          if-no-files-found: warn
