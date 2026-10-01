@@ -16,7 +16,7 @@ android.archs = arm64-v8a
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,SYSTEM_ALERT_WINDOW,WAKE_LOCK
 android.accept_sdk_license = True
 p4a.branch = master
-p4a.commit = 54cf321676712893786d4ccbbefbad3ff2e5930d
+p4a.commit = 58d148bf81e312ae890cb7762ccb9f0f877ee7a4
 p4a.setup_py = false
 p4a.local_recipes = p4a-recipes
 
