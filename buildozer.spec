@@ -6,7 +6,7 @@ source.dir = .
 source.include_exts = py,kv,png,jpg,jpeg,txt
 source.exclude_dirs = tests,bin,.buildozer,__pycache__,.git
 version = 3.0.2
-requirements = python3,hostpython3,kivy==2.3.1,pyjnius,android,websockets==14.2.0,httpx,httpcore,anyio,h11,sniffio,idna,typing_extensions,beautifulsoup4,certifi,fake-useragent==2.2.0,pyfiglet>=1.0.2,<2.0.0,rich>=13.7.0,<14.0.0,git+https://github.com/cleitonleonel/pyquotex.git@70fca1575b9c3e8f45aaaa08a54baf67adbdac68
+requirements = python3,hostpython3,kivy==2.3.1,pyjnius,android,websockets==14.2.0,httpx,httpcore,anyio,h11,sniffio,idna,typing_extensions,beautifulsoup4,certifi,fake-useragent==2.2.0,pyfiglet>=1.0.2,rich>=13.7.0,git+https://github.com/cleitonleonel/pyquotex.git@70fca1575b9c3e8f45aaaa08a54baf67adbdac68
 orientation = portrait
 fullscreen = 0
 android.api = 35
