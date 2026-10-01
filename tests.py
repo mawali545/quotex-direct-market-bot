@@ -30,7 +30,7 @@ assert "No stable colored candle bodies detected" in reader
 # Dependency / Android compatibility target: stable p4a master + Python 3.12.
 assert "python3==3.12.10" in spec and "hostpython3==3.12.10" in spec
 assert "kivy==2.3.1" in spec
-assert "pyjnius==1.6.1" in spec
+assert "pyjnius" in spec and "pyjnius==" not in spec
 assert "websockets==14.2.0" in spec
 assert "q.connect(is_demo=True)" in main
 assert "Login.https_base_url" in main
