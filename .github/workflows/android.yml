@@ -45,6 +45,7 @@ jobs:
 
       - name: Build debug APK
         run: |
+          set -o pipefail
           buildozer -v android debug 2>&1 | tee build.log
 
       - name: Upload APK
@@ -52,7 +53,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AMH110-FINAL-APK
-          path: bin/*.apk
+          path: |
+            bin/*.apk
+            bin/**/*.apk
           if-no-files-found: error
 
       - name: Upload build log
