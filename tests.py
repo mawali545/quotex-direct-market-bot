@@ -41,7 +41,7 @@ assert "android.ndk = 25b" in spec
 assert "android.archs = arm64-v8a" in spec
 assert "armeabi-v7a" not in spec
 assert "p4a.branch = master" in spec
-assert "p4a.commit = 54cf321676712893786d4ccbbefbad3ff2e5930d" in spec
+assert "p4a.commit = 58d148bf81e312ae890cb7762ccb9f0f877ee7a4" in spec
 assert 'runs-on: ubuntu-24.04' in workflow
 assert 'python-version: "3.11"' in workflow
 assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
