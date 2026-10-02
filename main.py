@@ -19,7 +19,6 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.popup import Popup
 
 from engine import analyze
 from screen_reader import AndroidChartReader
@@ -238,11 +237,20 @@ class AMH110(App):
         auth.add_widget(self.connect_btn)
         content.add_widget(auth)
 
+        otp = Card(orientation="vertical", padding=dp(8), spacing=dp(6), size_hint_y=None, height=0, opacity=0)
+        self.otp_card = otp
+        self.otp_msg = Label(text="QUOTEX AUTHENTICATION CODE", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(20))
+        self.otp_input = TextInput(hint_text="Enter authentication code", multiline=False, input_filter="int", font_size="16sp", size_hint_y=None, height=dp(40))
+        self.otp_btn = Button(text="VERIFY CODE", font_size="14sp", size_hint_y=None, height=dp(40), background_normal="", background_color=(.10, .36, .62, 1))
+        self.otp_btn.bind(on_release=self._submit_otp)
+        otp.add_widget(self.otp_msg); otp.add_widget(self.otp_input); otp.add_widget(self.otp_btn)
+        content.add_widget(otp)
+
         settings = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(94))
         g = GridLayout(cols=3, spacing=dp(7))
         self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs, font_size="10sp", shorten=True)
-        self.period = Spinner(text="10", values=PERIODS, font_size="11sp")
-        self.duration = Spinner(text="10s", values=[x + "s" for x in DURATIONS], font_size="11sp")
+        self.period = Spinner(text="CANDLE 10s", values=["CANDLE " + x + "s" for x in PERIODS], font_size="10sp")
+        self.duration = Spinner(text="TRADE 10s", values=["TRADE " + x + "s" for x in DURATIONS], font_size="10sp")
         g.add_widget(self.pair); g.add_widget(self.period); g.add_widget(self.duration); settings.add_widget(g)
         content.add_widget(settings)
 
@@ -361,68 +369,35 @@ class AMH110(App):
         self.screen_obs = obs
         Clock.schedule_once(lambda dt: self.render(self.last_result) if hasattr(self, "last_result") else None, 0)
 
+    def _show_otp(self, prompt):
+        self.otp_msg.text = "QUOTEX AUTH CODE  •  " + str(prompt)[:70]
+        self.otp_input.text = ""
+        self.otp_card.height = dp(118)
+        self.otp_card.opacity = 1
+        self.otp_input.focus = True
+
+    def _hide_otp(self):
+        self.otp_card.height = 0
+        self.otp_card.opacity = 0
+
+    def _submit_otp(self, *_):
+        code = self.otp_input.text.strip()
+        if code:
+            self.otp_result["code"] = code
+            self.otp_done.set()
+            self._hide_otp()
+            self.status_text("AUTH CODE RECEIVED  •  CONTINUING LOGIN")
+
     def request_otp(self, prompt):
-        """Provide Quotex email/PIN verification through the Android UI.
-        The bundled PyQuotex login falls back to input() when no callback is
-        supplied; Android has no interactive stdin, which caused the observed
-        EOFError: EOF when reading a line.
-        """
-        done = threading.Event()
-        result = {"code": ""}
-
-        def build_and_open(_dt):
-            box = BoxLayout(orientation="vertical", spacing=dp(8), padding=dp(12))
-            msg = Label(
-                text="Quotex verification code\\n" + str(prompt),
-                font_size="13sp",
-                size_hint_y=None,
-                height=dp(48),
-            )
-            field = TextInput(
-                hint_text="Enter authentication code",
-                multiline=False,
-                input_filter="int",
-                font_size="16sp",
-                size_hint_y=None,
-                height=dp(44),
-            )
-            btn = Button(
-                text="VERIFY CODE",
-                font_size="14sp",
-                size_hint_y=None,
-                height=dp(44),
-            )
-            box.add_widget(msg)
-            box.add_widget(field)
-            box.add_widget(btn)
-
-            popup = Popup(
-                title="QUOTEX VERIFICATION",
-                content=box,
-                size_hint=(.90, .38),
-                auto_dismiss=False,
-            )
-
-            def submit(*_):
-                code = field.text.strip()
-                if code:
-                    result["code"] = code
-                    popup.dismiss()
-                    done.set()
-                    self.status_text("VERIFICATION CODE RECEIVED  •  CONTINUING LOGIN")
-
-            btn.bind(on_release=submit)
-            popup.open()
-            field.focus = True
-
-        # request_otp runs inside the login worker thread. All Kivy widget
-        # creation must therefore be scheduled onto the Android/Kivy main thread.
-        Clock.schedule_once(build_and_open, 0)
-        self.status_text("QUOTEX PIN REQUIRED  •  CHECK YOUR EMAIL")
-        if not done.wait(180):
-            self.status_text("VERIFICATION TIMEOUT  •  CONNECT AGAIN")
+        self.otp_done = threading.Event()
+        self.otp_result = {"code": ""}
+        Clock.schedule_once(lambda dt: self._show_otp(prompt), 0)
+        self.status_text("QUOTEX AUTH CODE REQUIRED  •  CHECK YOUR EMAIL")
+        if not self.otp_done.wait(180):
+            Clock.schedule_once(lambda dt: self._hide_otp(), 0)
+            self.status_text("AUTH CODE TIMEOUT  •  CONNECT AGAIN")
             return "0"
-        return result["code"] or "0"
+        return self.otp_result["code"] or "0"
 
     def start(self):
         if not self.email.text.strip() or not self.password.text:
@@ -440,7 +415,8 @@ class AMH110(App):
             from pyquotex.stable_api import Quotex
             from pyquotex.network.login import Login
             requested_asset = self.pair.text if self.pair.text not in {"CONNECT FIRST", "AUTO"} else ""
-            period = int(self.period.text)
+            period = int(self.period.text.split()[-1].rstrip("s"))
+            trade_duration = int(self.duration.text.split()[-1].rstrip("s"))
 
             for host in HOSTS:
                 if self.stop_flag:
