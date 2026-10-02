@@ -485,12 +485,31 @@ class AMH110(App):
                         period_default=period,
                         on_otp_callback=self.request_otp,
                     )
+                    # Do not reuse a cached SSID/token on Android.
+                    # A stale persisted session can make Quotex accept the
+                    # HTTP login state but reject the WebSocket authorization.
+                    # Force a fresh HTTP login so a new SSID is issued.
+                    q.session_data["token"] = None
+                    q.session_data["cookies"] = None
+                    q.session_data["user_agent"] = UA
+
                     self.loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(self.loop)
                     q.set_account_mode("PRACTICE")
                     ok, reason = self.loop.run_until_complete(q.connect())
                     if not ok:
-                        raise RuntimeError(reason or "LOGIN FAILED")
+                        detail = reason or "LOGIN FAILED"
+                        try:
+                            if q.api is not None:
+                                detail = (
+                                    q.api.state.websocket_error_reason
+                                    or detail
+                                )
+                        except Exception:
+                            pass
+                        raise RuntimeError(detail)
+                    if q.api is None or not q.api.state.SSID:
+                        raise RuntimeError("LOGIN SUCCEEDED BUT NO QUOTEX SSID WAS RECEIVED")
                     self.client = q
                     self.status_text("CONNECTED  •  LOADING REAL QUOTEX INSTRUMENTS")
 
