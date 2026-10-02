@@ -18,6 +18,7 @@ from kivy.uix.label import Label
 from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
+from kivy.uix.scrollview import ScrollView
 
 from engine import analyze
 from screen_reader import AndroidChartReader
@@ -206,52 +207,54 @@ class AMH110(App):
         self.client = None
         self.candles = []
         self.current_asset = ""
-        self.available_pairs = ["CONNECT TO LOAD LIVE PAIRS"]
+        self.available_pairs = ["CONNECT TO LOAD PAIRS"]
         self.screen_obs = {"valid": False, "signal": "WAIT", "agreement": 0}
         self.android_api = 35
         self.overlay = OverlayController(self)
         self.reader = None
         self.capture_requested = False
 
-        root = BoxLayout(orientation="vertical", padding=dp(10), spacing=dp(8))
+        root = ScrollView(do_scroll_x=False, bar_width=dp(3))
+        content = BoxLayout(orientation="vertical", padding=dp(10), spacing=dp(8), size_hint_y=None)
+        content.bind(minimum_height=content.setter("height"))
         with root.canvas.before:
             Color(*BG)
             self.bg = Rectangle(pos=root.pos, size=root.size)
         root.bind(pos=lambda *_: setattr(self.bg, "pos", root.pos), size=lambda *_: setattr(self.bg, "size", root.size))
 
         h = BoxLayout(size_hint_y=None, height=dp(48))
-        h.add_widget(Label(text="[b]AMH110[/b]", markup=True, font_size="24sp", color=TEXT))
-        h.add_widget(Label(text="LIVE QUOTEX + SCREEN CROSS-CHECK", font_size="10sp", color=MUTED))
-        root.add_widget(h)
+        h.add_widget(Label(text="[b]AMH110[/b]", markup=True, font_size="20sp", size_hint_x=.30, color=TEXT))
+        h.add_widget(Label(text="LIVE QUOTEX • SCREEN CHECK", font_size="9sp", size_hint_x=.70, color=MUTED))
+        content.add_widget(h)
 
         auth = Card(orientation="vertical", padding=dp(10), spacing=dp(7), size_hint_y=None, height=dp(148))
         g = GridLayout(cols=2, spacing=dp(7), size_hint_y=None, height=dp(42))
         self.email = TextInput(hint_text="Quotex ID / Email", multiline=False)
         self.password = TextInput(hint_text="Password", multiline=False, password=True)
         g.add_widget(self.email); g.add_widget(self.password); auth.add_widget(g)
-        self.connect_btn = Button(text="CONNECT  •  LIVE QUOTEX", size_hint_y=None, height=dp(44), background_normal="", background_color=(.10, .36, .62, 1), bold=True)
+        self.connect_btn = Button(text="CONNECT • LIVE", size_hint_y=None, height=dp(44), background_normal="", background_color=(.10, .36, .62, 1), bold=True)
         self.connect_btn.bind(on_release=lambda *_: self.start())
         auth.add_widget(self.connect_btn)
-        root.add_widget(auth)
+        content.add_widget(auth)
 
         settings = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(94))
         g = GridLayout(cols=3, spacing=dp(7))
-        self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs)
-        self.period = Spinner(text="10", values=PERIODS)
-        self.duration = Spinner(text="10s", values=[x + "s" for x in DURATIONS])
+        self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs, font_size="10sp")
+        self.period = Spinner(text="10", values=PERIODS, font_size="11sp")
+        self.duration = Spinner(text="10s", values=[x + "s" for x in DURATIONS], font_size="11sp")
         g.add_widget(self.pair); g.add_widget(self.period); g.add_widget(self.duration); settings.add_widget(g)
-        root.add_widget(settings)
+        content.add_widget(settings)
 
         tools = Card(orientation="horizontal", padding=dp(8), spacing=dp(7), size_hint_y=None, height=dp(54))
-        self.overlay_btn = Button(text="OVERLAY + CHART READER", background_normal="", background_color=(.14, .22, .35, 1), bold=True)
+        self.overlay_btn = Button(text="OVERLAY + CHART", background_normal="", background_color=(.14, .22, .35, 1), bold=True)
         self.overlay_btn.bind(on_release=lambda *_: self.enable_overlay())
-        self.demo_btn = Button(text="DEMO-SAFE  •  WAIT ON UNCERTAINTY", background_normal="", background_color=(.18, .18, .24, 1), bold=True)
+        self.demo_btn = Button(text="WAIT IF UNCERTAIN", background_normal="", background_color=(.18, .18, .24, 1), bold=True)
         tools.add_widget(self.overlay_btn); tools.add_widget(self.demo_btn)
-        root.add_widget(tools)
+        content.add_widget(tools)
 
         st = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(72))
-        self.status = Label(text="READY  •  CONNECT THEN ENABLE OVERLAY", font_size="14sp", color=TEXT)
-        self.payout = Label(text="PAYOUT  —", font_size="12sp", color=MUTED)
+        self.status = Label(text="READY  •  CONNECT THEN ENABLE OVERLAY", font_size="11sp", color=TEXT)
+        self.payout = Label(text="PAYOUT  —", font_size="10sp", color=MUTED)
         st.add_widget(self.status); st.add_widget(self.payout); root.add_widget(st)
 
         ch = Card(orientation="vertical", padding=dp(7), size_hint_y=None, height=dp(225))
@@ -260,12 +263,13 @@ class AMH110(App):
 
         sig = Card(orientation="vertical", padding=dp(10), spacing=dp(3), size_hint_y=None, height=dp(162))
         self.phase = Label(text="WAITING FOR VERIFIED DATA", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(20))
-        self.signal = Label(text="WAIT", font_size="44sp", bold=True, color=TEXT, size_hint_y=None, height=dp(58))
-        self.strength = Label(text="ANALYSIS STRENGTH  —%", font_size="15sp", color=MUTED, size_hint_y=None, height=dp(25))
+        self.signal = Label(text="WAIT", font_size="42sp", bold=True, color=TEXT, size_hint_y=None, height=dp(58))
+        self.strength = Label(text="ANALYSIS STRENGTH  —%", font_size="13sp", color=MUTED, size_hint_y=None, height=dp(25))
         self.reason = Label(text="No live OHLC + chart confirmation = no signal.", font_size="12sp", color=MUTED)
         for x in (self.phase, self.signal, self.strength, self.reason): sig.add_widget(x)
-        root.add_widget(sig)
-        root.add_widget(Label(text="Signals only • no auto-trading • no win-probability claim • demo first", font_size="10sp", color=MUTED, size_hint_y=None, height=dp(22)))
+        content.add_widget(sig)
+        content.add_widget(Label(text="SIGNALS ONLY • NO AUTO-TRADING • DEMO FIRST", font_size="9sp", color=MUTED, size_hint_y=None, height=dp(22)))
+        root.add_widget(content)
 
         try:
             from android import activity
