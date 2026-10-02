@@ -82,6 +82,19 @@ class PyquotexRecipe(Recipe):
                     raise RuntimeError("Expected pyquotex stable_api candle resubscribe code was not found")
                 stable_api_py.write_text(s.replace(old, new), encoding="utf-8")
 
+            # Cloudflare can reject the WebSocket handshake when it does not
+            # look like the browser session that performed the HTTP login.
+            # Reuse the same session/cookies and send browser-like origin,
+            # referer and navigation headers on the Socket.IO upgrade.
+            ws_py = target / "pyquotex" / "ws" / "client.py"
+            if ws_py.is_file():
+                s = ws_py.read_text(encoding="utf-8")
+                old = '''        headers = extra_headers or {}\n\n        # Get the AsyncSession from api.browser'''
+                new = '''        headers = dict(extra_headers or {})\n        host = getattr(self.api, "host", "qxbroker.com")\n        headers.setdefault("Origin", f"https://{host}")\n        headers.setdefault("Referer", f"https://{host}/")\n        headers.setdefault("Accept", "*/*")\n        headers.setdefault("Accept-Language", "en-US,en;q=0.9")\n        headers.setdefault("Cache-Control", "no-cache")\n        headers.setdefault("Pragma", "no-cache")\n        # Keep the WebSocket handshake tied to the same authenticated\n        # browser session instead of creating a fresh unauthenticated one.\n        try:\n            session_cookie = getattr(self.api.browser, "get_cookies", lambda: "")()\n            if session_cookie:\n                headers.setdefault("Cookie", session_cookie)\n        except Exception:\n            pass\n\n        # Get the AsyncSession from api.browser'''
+                if old not in s:
+                    raise RuntimeError("Expected pyquotex websocket header block was not found")
+                ws_py.write_text(s.replace(old, new), encoding="utf-8")
+
             navigator_py = target / "pyquotex" / "network" / "navigator.py"
             if navigator_py.is_file():
                 s = navigator_py.read_text(encoding="utf-8")
