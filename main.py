@@ -364,7 +364,7 @@ class AMH110(App):
         if not self.email.text.strip() or not self.password.text:
             self.status_text("LOGIN REQUIRED  •  ENTER ID + PASSWORD")
             return
-        if self.pair.text == "CONNECT TO LOAD LIVE PAIRS":
+        if self.pair.text == "CONNECT TO LOAD PAIRS":
             self.status_text("CONNECTING  •  LIVE PAIRS WILL LOAD AFTER LOGIN")
         self.stop_flag = False
         self.connect_btn.disabled = True
@@ -375,7 +375,7 @@ class AMH110(App):
         try:
             from pyquotex.stable_api import Quotex
             from pyquotex.network.login import Login
-            requested_asset = self.pair.text if self.pair.text not in {"CONNECT TO LOAD LIVE PAIRS", "AUTO"} else ""
+            requested_asset = self.pair.text if self.pair.text not in {"CONNECT TO LOAD PAIRS", "AUTO"} else ""
             period = int(self.period.text)
 
             for host in HOSTS:
