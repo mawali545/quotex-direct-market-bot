@@ -214,71 +214,116 @@ class AMH110(App):
         self.reader = None
         self.capture_requested = False
 
-        root = ScrollView(do_scroll_x=False, bar_width=dp(3))
-        content = BoxLayout(orientation="vertical", padding=dp(10), spacing=dp(8), size_hint_y=None)
-        content.bind(minimum_height=content.setter("height"))
+        # One-screen mobile layout: no scrolling on the main face.
+        root = FloatLayout()
         with root.canvas.before:
             Color(*BG)
             self.bg = Rectangle(pos=root.pos, size=root.size)
-        root.bind(pos=lambda *_: setattr(self.bg, "pos", root.pos), size=lambda *_: setattr(self.bg, "size", root.size))
+        root.bind(pos=lambda *_: setattr(self.bg, "pos", root.pos),
+                  size=lambda *_: setattr(self.bg, "size", root.size))
 
-        h = BoxLayout(size_hint_y=None, height=dp(48))
-        h.add_widget(Label(text="[b]AMH110[/b]", markup=True, font_size="20sp", size_hint_x=.30, color=TEXT))
-        h.add_widget(Label(text="LIVE QUOTEX • SCREEN CHECK", font_size="9sp", size_hint_x=.70, color=MUTED))
-        content.add_widget(h)
+        content = BoxLayout(
+            orientation="vertical",
+            padding=(dp(7), dp(6), dp(7), dp(5)),
+            spacing=dp(4),
+            size_hint=(1, 1),
+        )
+        root.add_widget(content)
 
-        auth = Card(orientation="vertical", padding=dp(10), spacing=dp(7), size_hint_y=None, height=dp(148))
-        g = GridLayout(cols=2, spacing=dp(7), size_hint_y=None, height=dp(42))
-        self.email = TextInput(hint_text="Quotex ID / Email", multiline=False)
-        self.password = TextInput(hint_text="Password", multiline=False, password=True)
+        header = BoxLayout(size_hint_y=None, height=dp(34), spacing=dp(5))
+        header.add_widget(Label(text="[b]AMH110[/b]", markup=True, font_size="19sp",
+                                size_hint_x=.34, color=TEXT))
+        header.add_widget(Label(text="QUOTEX LIVE  •  DIRECT + CHART",
+                                font_size="8sp", size_hint_x=.66, color=MUTED))
+        content.add_widget(header)
+
+        auth = Card(orientation="vertical", padding=dp(6), spacing=dp(4),
+                    size_hint_y=None, height=dp(86))
+        g = GridLayout(cols=2, spacing=dp(5), size_hint_y=None, height=dp(34))
+        self.email = TextInput(hint_text="Quotex ID / Email", multiline=False, font_size="12sp")
+        self.password = TextInput(hint_text="Password", multiline=False, password=True, font_size="12sp")
         g.add_widget(self.email); g.add_widget(self.password); auth.add_widget(g)
-        self.connect_btn = Button(text="CONNECT • LIVE", size_hint_y=None, height=dp(44), font_size="16sp", background_normal="", background_color=(.10, .36, .62, 1), bold=True)
+        self.connect_btn = Button(text="CONNECT • LIVE", size_hint_y=None, height=dp(37),
+                                  font_size="14sp", background_normal="",
+                                  background_color=(.10, .36, .62, 1), bold=True)
         self.connect_btn.bind(on_release=lambda *_: self.start())
         auth.add_widget(self.connect_btn)
         content.add_widget(auth)
 
-        otp = Card(orientation="vertical", padding=dp(8), spacing=dp(6), size_hint_y=None, height=0, opacity=0)
-        self.otp_card = otp
-        self.otp_msg = Label(text="QUOTEX AUTHENTICATION CODE", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(20))
-        self.otp_input = TextInput(hint_text="Enter authentication code", multiline=False, input_filter="int", font_size="16sp", size_hint_y=None, height=dp(40))
-        self.otp_btn = Button(text="VERIFY CODE", font_size="14sp", size_hint_y=None, height=dp(40), background_normal="", background_color=(.10, .36, .62, 1))
-        self.otp_btn.bind(on_release=self._submit_otp)
-        otp.add_widget(self.otp_msg); otp.add_widget(self.otp_input); otp.add_widget(self.otp_btn)
-        content.add_widget(otp)
-
-        settings = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(94))
-        g = GridLayout(cols=3, spacing=dp(7))
-        self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs, font_size="10sp", shorten=True)
-        self.period = Spinner(text="CANDLE 10s", values=["CANDLE " + x + "s" for x in PERIODS], font_size="10sp")
-        self.duration = Spinner(text="TRADE 10s", values=["TRADE " + x + "s" for x in DURATIONS], font_size="10sp")
-        g.add_widget(self.pair); g.add_widget(self.period); g.add_widget(self.duration); settings.add_widget(g)
+        settings = Card(orientation="vertical", padding=dp(5), size_hint_y=None, height=dp(58))
+        g = GridLayout(cols=3, spacing=dp(5))
+        self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs,
+                            font_size="9sp", shorten=True)
+        self.period = Spinner(text="CANDLE 10s",
+                              values=["CANDLE " + x + "s" for x in PERIODS],
+                              font_size="9sp")
+        self.duration = Spinner(text="TRADE 10s",
+                                values=["TRADE " + x + "s" for x in DURATIONS],
+                                font_size="9sp")
+        g.add_widget(self.pair); g.add_widget(self.period); g.add_widget(self.duration)
+        settings.add_widget(g)
         content.add_widget(settings)
 
-        tools = Card(orientation="horizontal", padding=dp(8), spacing=dp(7), size_hint_y=None, height=dp(54))
-        self.overlay_btn = Button(text="OVERLAY + CHART", background_normal="", background_color=(.14, .22, .35, 1), bold=True)
+        tools = Card(orientation="horizontal", padding=dp(4), spacing=dp(5),
+                     size_hint_y=None, height=dp(40))
+        self.overlay_btn = Button(text="● OVERLAY", font_size="10sp",
+                                  background_normal="", background_color=(.14, .22, .35, 1), bold=True)
         self.overlay_btn.bind(on_release=lambda *_: self.enable_overlay())
-        self.demo_btn = Button(text="WAIT IF UNCERTAIN", background_normal="", background_color=(.18, .18, .24, 1), bold=True)
+        self.demo_btn = Button(text="WAIT IF UNCERTAIN", font_size="10sp",
+                               background_normal="", background_color=(.18, .18, .24, 1), bold=True)
         tools.add_widget(self.overlay_btn); tools.add_widget(self.demo_btn)
         content.add_widget(tools)
 
-        st = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(72))
-        self.status = Label(text="READY  •  CONNECT THEN ENABLE OVERLAY", font_size="11sp", color=TEXT)
-        self.payout = Label(text="PAYOUT  —", font_size="10sp", color=MUTED)
-        st.add_widget(self.status); st.add_widget(self.payout); content.add_widget(st)
+        st = Card(orientation="vertical", padding=dp(5), spacing=dp(1),
+                  size_hint_y=None, height=dp(48))
+        self.status = Label(text="READY • CONNECT THEN ENABLE OVERLAY",
+                            font_size="9sp", color=TEXT)
+        self.payout = Label(text="PAYOUT  —", font_size="8sp", color=MUTED)
+        st.add_widget(self.status); st.add_widget(self.payout)
+        content.add_widget(st)
 
-        ch = Card(orientation="vertical", padding=dp(7), size_hint_y=None, height=dp(225))
-        ch.add_widget(Label(text="LIVE QUOTEX OHLC  •  PRIMARY SOURCE", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(25)))
-        self.chart = ChartWidget(); ch.add_widget(self.chart); content.add_widget(ch)
+        ch = Card(orientation="vertical", padding=dp(4), size_hint_y=None, height=dp(105))
+        ch.add_widget(Label(text="LIVE QUOTEX OHLC • PRIMARY SOURCE",
+                            font_size="9sp", color=MUTED, size_hint_y=None, height=dp(17)))
+        self.chart = ChartWidget()
+        ch.add_widget(self.chart)
+        content.add_widget(ch)
 
-        sig = Card(orientation="vertical", padding=dp(10), spacing=dp(3), size_hint_y=None, height=dp(162))
-        self.phase = Label(text="WAITING FOR VERIFIED DATA", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(20))
-        self.signal = Label(text="WAIT", font_size="42sp", bold=True, color=TEXT, size_hint_y=None, height=dp(58))
-        self.strength = Label(text="ANALYSIS STRENGTH  —%", font_size="13sp", color=MUTED, size_hint_y=None, height=dp(25))
-        self.reason = Label(text="No live OHLC + chart confirmation = no signal.", font_size="12sp", color=MUTED)
-        for x in (self.phase, self.signal, self.strength, self.reason): sig.add_widget(x)
+        sig = Card(orientation="vertical", padding=dp(5), spacing=dp(0),
+                   size_hint_y=None, height=dp(104))
+        self.phase = Label(text="WAITING FOR VERIFIED DATA", font_size="8sp",
+                           color=MUTED, size_hint_y=None, height=dp(16))
+        self.signal = Label(text="WAIT", font_size="34sp", bold=True, color=TEXT,
+                            size_hint_y=None, height=dp(43))
+        self.strength = Label(text="ANALYSIS STRENGTH  —%", font_size="9sp",
+                              color=MUTED, size_hint_y=None, height=dp(18))
+        self.reason = Label(text="No live OHLC + chart confirmation = no signal.",
+                            font_size="8sp", color=MUTED)
+        for x in (self.phase, self.signal, self.strength, self.reason):
+            sig.add_widget(x)
         content.add_widget(sig)
-        content.add_widget(Label(text="SIGNALS ONLY • NO AUTO-TRADING • DEMO FIRST", font_size="9sp", color=MUTED, size_hint_y=None, height=dp(22)))
-        root.add_widget(content)
+
+        content.add_widget(Label(text="SIGNALS ONLY • NO AUTO-TRADING • DEMO FIRST",
+                                 font_size="7sp", color=MUTED, size_hint_y=None, height=dp(14)))
+
+        # OTP is an overlay card, not part of the vertical layout.
+        otp = Card(orientation="vertical", padding=dp(8), spacing=dp(5),
+                   size_hint=(.88, None), height=dp(128),
+                   pos_hint={"center_x": .5, "center_y": .56},
+                   opacity=0)
+        self.otp_card = otp
+        self.otp_msg = Label(text="QUOTEX AUTHENTICATION CODE",
+                             font_size="10sp", color=TEXT,
+                             size_hint_y=None, height=dp(24))
+        self.otp_input = TextInput(hint_text="Enter authentication code",
+                                   multiline=False, input_filter="int",
+                                   font_size="15sp", size_hint_y=None, height=dp(38))
+        self.otp_btn = Button(text="VERIFY CODE", font_size="13sp",
+                              size_hint_y=None, height=dp(38),
+                              background_normal="", background_color=(.10, .36, .62, 1))
+        self.otp_btn.bind(on_release=self._submit_otp)
+        otp.add_widget(self.otp_msg); otp.add_widget(self.otp_input); otp.add_widget(self.otp_btn)
+        root.add_widget(otp)
 
         try:
             from android import activity
