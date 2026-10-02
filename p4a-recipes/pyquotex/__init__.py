@@ -64,6 +64,24 @@ class PyquotexRecipe(Recipe):
                     raise RuntimeError("Expected pyquotex login cookie code was not found")
                 login_py.write_text(s.replace(old, new), encoding="utf-8")
 
+            api_py = target / "pyquotex" / "api.py"
+            if api_py.is_file():
+                s = api_py.read_text(encoding="utf-8")
+                old = '                cookie_str = self.session_data["cookies"]\n'
+                new = '                cookie_str = self.session_data.get("cookies") or ""\n'
+                if old not in s:
+                    raise RuntimeError("Expected pyquotex API cookie sync code was not found")
+                api_py.write_text(s.replace(old, new), encoding="utf-8")
+
+            stable_api_py = target / "pyquotex" / "stable_api.py"
+            if stable_api_py.is_file():
+                s = stable_api_py.read_text(encoding="utf-8")
+                old = '            for ac in self.subscribe_candle:\n                sp = ac.split(",")\n'
+                new = '            for ac in self.subscribe_candle:\n                if not ac:\n                    continue\n                sp = ac.split(",")\n'
+                if old not in s:
+                    raise RuntimeError("Expected pyquotex stable_api candle resubscribe code was not found")
+                stable_api_py.write_text(s.replace(old, new), encoding="utf-8")
+
             navigator_py = target / "pyquotex" / "network" / "navigator.py"
             if navigator_py.is_file():
                 s = navigator_py.read_text(encoding="utf-8")
