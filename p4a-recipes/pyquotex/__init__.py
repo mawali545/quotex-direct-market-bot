@@ -71,7 +71,38 @@ class PyquotexRecipe(Recipe):
                 new = '                cookie_str = self.session_data.get("cookies") or ""\n'
                 if old not in s:
                     raise RuntimeError("Expected pyquotex API cookie sync code was not found")
-                api_py.write_text(s.replace(old, new), encoding="utf-8")
+                s = s.replace(old, new)
+                old_ws = '''        extra_headers = {
+            "User-Agent": ua,
+            "Origin": self.https_url,
+            "Referer": f"{self.https_url}/{self.lang}/trade",
+            "Cookie": self.session_data.get("cookies", ""),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        }'''
+                new_ws = '''        try:
+            browser_cookies = self.browser.get_cookies()
+        except Exception:
+            browser_cookies = self.session_data.get("cookies") or ""
+        try:
+            browser_ua = self.browser.headers.get("User-Agent") or ua
+        except Exception:
+            browser_ua = ua
+        extra_headers = {
+            "User-Agent": browser_ua,
+            "Origin": self.https_url,
+            "Referer": f"{self.https_url}/{self.lang}/trade",
+            "Cookie": browser_cookies,
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        }'''
+                if old_ws not in s:
+                    raise RuntimeError("Expected pyquotex websocket header block was not found in API")
+                s = s.replace(old_ws, new_ws)
+                api_py.write_text(s, encoding="utf-8")
 
             stable_api_py = target / "pyquotex" / "stable_api.py"
             if stable_api_py.is_file():
