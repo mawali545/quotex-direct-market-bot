@@ -19,6 +19,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.popup import Popup
 
 from engine import analyze
 from screen_reader import AndroidChartReader
@@ -360,6 +361,48 @@ class AMH110(App):
         self.screen_obs = obs
         Clock.schedule_once(lambda dt: self.render(self.last_result) if hasattr(self, "last_result") else None, 0)
 
+    def request_otp(self, prompt):
+        """Provide Quotex email/PIN verification through the Android UI.
+        The bundled PyQuotex login falls back to input() when no callback is
+        supplied; Android has no interactive stdin, which caused the observed
+        EOFError: EOF when reading a line.
+        """
+        done = threading.Event()
+        result = {"code": ""}
+
+        box = BoxLayout(orientation="vertical", spacing=dp(10), padding=dp(12))
+        msg = Label(text="Quotex verification code\\n" + str(prompt), size_hint_y=None, height=dp(55))
+        field = TextInput(hint_text="Enter PIN / verification code", multiline=False, input_filter="int",
+                          size_hint_y=None, height=dp(45))
+        btn = Button(text="SUBMIT CODE", size_hint_y=None, height=dp(45))
+        box.add_widget(msg)
+        box.add_widget(field)
+        box.add_widget(btn)
+
+        popup = Popup(title="QUOTEX VERIFICATION", content=box, size_hint=(.92, .42),
+                      auto_dismiss=False)
+
+        def submit(*_):
+            code = field.text.strip()
+            if code:
+                result["code"] = code
+                popup.dismiss()
+                done.set()
+                self.status_text("VERIFICATION CODE RECEIVED  •  CONTINUING LOGIN")
+
+        btn.bind(on_release=submit)
+
+        def open_popup(_dt):
+            popup.open()
+            field.focus = True
+
+        Clock.schedule_once(open_popup, 0)
+        self.status_text("QUOTEX PIN REQUIRED  •  CHECK YOUR EMAIL")
+        if not done.wait(180):
+            self.status_text("VERIFICATION TIMEOUT  •  CONNECT AGAIN")
+            return "0"
+        return result["code"] or "0"
+
     def start(self):
         if not self.email.text.strip() or not self.password.text:
             self.status_text("LOGIN REQUIRED  •  ENTER ID + PASSWORD")
@@ -399,6 +442,7 @@ class AMH110(App):
                         user_agent=UA,
                         asset_default=requested_asset or "EURUSD",
                         period_default=period,
+                        on_otp_callback=self.request_otp,
                     )
                     self.loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(self.loop)
