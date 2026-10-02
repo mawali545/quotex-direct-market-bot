@@ -208,7 +208,7 @@ class AMH110(App):
         self.client = None
         self.candles = []
         self.current_asset = ""
-        self.available_pairs = ["CONNECT TO LOAD PAIRS"]
+        self.available_pairs = ["CONNECT FIRST"]
         self.screen_obs = {"valid": False, "signal": "WAIT", "agreement": 0}
         self.android_api = 35
         self.overlay = OverlayController(self)
@@ -233,14 +233,14 @@ class AMH110(App):
         self.email = TextInput(hint_text="Quotex ID / Email", multiline=False)
         self.password = TextInput(hint_text="Password", multiline=False, password=True)
         g.add_widget(self.email); g.add_widget(self.password); auth.add_widget(g)
-        self.connect_btn = Button(text="CONNECT • LIVE", size_hint_y=None, height=dp(44), background_normal="", background_color=(.10, .36, .62, 1), bold=True)
+        self.connect_btn = Button(text="CONNECT • LIVE", size_hint_y=None, height=dp(44), font_size="16sp", background_normal="", background_color=(.10, .36, .62, 1), bold=True)
         self.connect_btn.bind(on_release=lambda *_: self.start())
         auth.add_widget(self.connect_btn)
         content.add_widget(auth)
 
         settings = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(94))
         g = GridLayout(cols=3, spacing=dp(7))
-        self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs, font_size="10sp")
+        self.pair = Spinner(text=self.available_pairs[0], values=self.available_pairs, font_size="10sp", shorten=True)
         self.period = Spinner(text="10", values=PERIODS, font_size="11sp")
         self.duration = Spinner(text="10s", values=[x + "s" for x in DURATIONS], font_size="11sp")
         g.add_widget(self.pair); g.add_widget(self.period); g.add_widget(self.duration); settings.add_widget(g)
@@ -370,33 +370,54 @@ class AMH110(App):
         done = threading.Event()
         result = {"code": ""}
 
-        box = BoxLayout(orientation="vertical", spacing=dp(10), padding=dp(12))
-        msg = Label(text="Quotex verification code\\n" + str(prompt), size_hint_y=None, height=dp(55))
-        field = TextInput(hint_text="Enter PIN / verification code", multiline=False, input_filter="int",
-                          size_hint_y=None, height=dp(45))
-        btn = Button(text="SUBMIT CODE", size_hint_y=None, height=dp(45))
-        box.add_widget(msg)
-        box.add_widget(field)
-        box.add_widget(btn)
+        def build_and_open(_dt):
+            box = BoxLayout(orientation="vertical", spacing=dp(8), padding=dp(12))
+            msg = Label(
+                text="Quotex verification code\\n" + str(prompt),
+                font_size="13sp",
+                size_hint_y=None,
+                height=dp(48),
+            )
+            field = TextInput(
+                hint_text="Enter authentication code",
+                multiline=False,
+                input_filter="int",
+                font_size="16sp",
+                size_hint_y=None,
+                height=dp(44),
+            )
+            btn = Button(
+                text="VERIFY CODE",
+                font_size="14sp",
+                size_hint_y=None,
+                height=dp(44),
+            )
+            box.add_widget(msg)
+            box.add_widget(field)
+            box.add_widget(btn)
 
-        popup = Popup(title="QUOTEX VERIFICATION", content=box, size_hint=(.92, .42),
-                      auto_dismiss=False)
+            popup = Popup(
+                title="QUOTEX VERIFICATION",
+                content=box,
+                size_hint=(.90, .38),
+                auto_dismiss=False,
+            )
 
-        def submit(*_):
-            code = field.text.strip()
-            if code:
-                result["code"] = code
-                popup.dismiss()
-                done.set()
-                self.status_text("VERIFICATION CODE RECEIVED  •  CONTINUING LOGIN")
+            def submit(*_):
+                code = field.text.strip()
+                if code:
+                    result["code"] = code
+                    popup.dismiss()
+                    done.set()
+                    self.status_text("VERIFICATION CODE RECEIVED  •  CONTINUING LOGIN")
 
-        btn.bind(on_release=submit)
-
-        def open_popup(_dt):
+            btn.bind(on_release=submit)
             popup.open()
             field.focus = True
 
-        Clock.schedule_once(open_popup, 0)
+        # request_otp runs inside the login worker thread. All Kivy widget
+        # creation must therefore be scheduled onto the Android/Kivy main thread.
+        Clock.schedule_once(build_and_open, 0)
         self.status_text("QUOTEX PIN REQUIRED  •  CHECK YOUR EMAIL")
         if not done.wait(180):
             self.status_text("VERIFICATION TIMEOUT  •  CONNECT AGAIN")
@@ -407,7 +428,7 @@ class AMH110(App):
         if not self.email.text.strip() or not self.password.text:
             self.status_text("LOGIN REQUIRED  •  ENTER ID + PASSWORD")
             return
-        if self.pair.text == "CONNECT TO LOAD PAIRS":
+        if self.pair.text == "CONNECT FIRST":
             self.status_text("CONNECTING  •  LIVE PAIRS WILL LOAD AFTER LOGIN")
         self.stop_flag = False
         self.connect_btn.disabled = True
@@ -418,7 +439,7 @@ class AMH110(App):
         try:
             from pyquotex.stable_api import Quotex
             from pyquotex.network.login import Login
-            requested_asset = self.pair.text if self.pair.text not in {"CONNECT TO LOAD PAIRS", "AUTO"} else ""
+            requested_asset = self.pair.text if self.pair.text not in {"CONNECT FIRST", "AUTO"} else ""
             period = int(self.period.text)
 
             for host in HOSTS:
