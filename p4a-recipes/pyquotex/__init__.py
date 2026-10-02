@@ -77,9 +77,11 @@ class PyquotexRecipe(Recipe):
             "Origin": self.https_url,
             "Referer": f"{self.https_url}/{self.lang}/trade",
             "Cookie": self.session_data.get("cookies", ""),
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept-Encoding": "gzip, deflate, br",
             "Cache-Control": "no-cache",
             "Pragma": "no-cache",
+            "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
         }'''
                 new_ws = '''        try:
             browser_cookies = self.browser.get_cookies()
