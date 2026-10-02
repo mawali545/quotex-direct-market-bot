@@ -8,7 +8,7 @@ from pythonforandroid.util import current_directory
 
 class PyquotexRecipe(Recipe):
     version = "1.1.0"
-    url = "https://codeload.github.com/cleitonleonel/pyquotex/tar.gz/70fca1575b9c3e8f45aaaa08a54baf67adbdac68"
+    url = "https://github.com/cleitonleonel/pyquotex/archive/70fca1575b9c3e8f45aaaa08a54baf67adbdac68.tar.gz"
     depends = [
         "python3",
         "websockets",
