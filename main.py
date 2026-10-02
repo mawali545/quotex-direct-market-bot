@@ -152,18 +152,17 @@ class OverlayController:
             wm = self.activity.getSystemService(Context.WINDOW_SERVICE)
             tv = TextView(self.activity)
             tv.setTextColor(0xFFF2F5FF)
-            tv.setTextSize(13)
-            tv.setPadding(18, 14, 18, 14)
+            tv.setTextSize(11)
+            tv.setPadding(4, 4, 4, 4)
             tv.setGravity(Gravity.CENTER)
+            tv.setText("AMH")
             bg = GradientDrawable()
-            bg.setColor(0xEE0B1020)
-            bg.setCornerRadius(28.0)
-            bg.setStroke(2, 0xFF263553)
+            bg.setColor(0xEE14508A)
+            bg.setCornerRadius(200.0)
+            bg.setStroke(3, 0xFF65B8FF)
             tv.setBackground(bg)
-            tv.setText("AMH110  •  WAIT\\nREAL QUOTEX DATA + CHART READER\\nStarting…")
 
-            width = int(self.app.dp_to_px(310))
-            height = int(self.app.dp_to_px(150))
+            size = int(self.app.dp_to_px(58))
             if self.app.android_api >= 26:
                 wtype = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else:
@@ -171,12 +170,11 @@ class OverlayController:
             flags = (
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             )
-            params = WindowManager.LayoutParams(width, height, wtype, flags, PixelFormat.TRANSLUCENT)
-            params.gravity = Gravity.RIGHT | Gravity.BOTTOM
+            params = WindowManager.LayoutParams(size, size, wtype, flags, PixelFormat.TRANSLUCENT)
+            params.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL
             params.x = int(self.app.dp_to_px(8))
-            params.y = int(self.app.dp_to_px(90))
+            params.y = int(self.app.dp_to_px(0))
             wm.addView(tv, params)
             self.window, self.text, self.ready = wm, tv, True
             return True
