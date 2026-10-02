@@ -255,11 +255,11 @@ class AMH110(App):
         st = Card(orientation="vertical", padding=dp(10), size_hint_y=None, height=dp(72))
         self.status = Label(text="READY  •  CONNECT THEN ENABLE OVERLAY", font_size="11sp", color=TEXT)
         self.payout = Label(text="PAYOUT  —", font_size="10sp", color=MUTED)
-        st.add_widget(self.status); st.add_widget(self.payout); root.add_widget(st)
+        st.add_widget(self.status); st.add_widget(self.payout); content.add_widget(st)
 
         ch = Card(orientation="vertical", padding=dp(7), size_hint_y=None, height=dp(225))
         ch.add_widget(Label(text="LIVE QUOTEX OHLC  •  PRIMARY SOURCE", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(25)))
-        self.chart = ChartWidget(); ch.add_widget(self.chart); root.add_widget(ch)
+        self.chart = ChartWidget(); ch.add_widget(self.chart); content.add_widget(ch)
 
         sig = Card(orientation="vertical", padding=dp(10), spacing=dp(3), size_hint_y=None, height=dp(162))
         self.phase = Label(text="WAITING FOR VERIFIED DATA", font_size="11sp", color=MUTED, size_hint_y=None, height=dp(20))
