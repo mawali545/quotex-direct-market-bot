@@ -6,6 +6,7 @@ source.dir = .
 source.include_exts = py,kv,png,jpg,jpeg,txt
 source.exclude_dirs = tests,bin,.buildozer,__pycache__,.git
 version = 3.0.2
+icon.filename = icon.png
 requirements = python3==3.11.13,hostpython3==3.11.13,kivy==2.3.1,pyjnius,android,websockets==14.2.0,httpx==0.27.2,httpcore,anyio,h11,sniffio,idna,typing_extensions,beautifulsoup4,certifi,charset-normalizer==3.4.3,fake-useragent==2.2.0,pyfiglet>=1.0.2,rich>=13.7.0,pyquotex
 orientation = portrait
 fullscreen = 0
