@@ -22,7 +22,7 @@ jobs:
       - name: Android build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake autopoint libtool libltdl-dev libffi-dev libssl-dev pkg-config zlib1g-dev libncurses-dev libncursesw5-dev libtinfo6 cmake gettext build-essential
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake autopoint libtool libltdl-dev libffi-dev libssl-dev pkg-config zlib1g-dev libncurses-dev libncursesw5-dev libtinfo6 cmake gettext build-essential lld llvm
       - name: Python build tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
