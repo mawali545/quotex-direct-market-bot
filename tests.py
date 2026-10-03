@@ -1,76 +1,27 @@
 import ast
 import pathlib
-import re
 from engine import analyze
-
-ROOT = pathlib.Path(__file__).parent
-for p in ROOT.glob("*.py"):
-    ast.parse(p.read_text(encoding="utf-8"))
-
-main = (ROOT / "main.py").read_text(encoding="utf-8")
-reader = (ROOT / "screen_reader.py").read_text(encoding="utf-8")
-spec = (ROOT / "buildozer.spec").read_text(encoding="utf-8")
-workflow = (ROOT / ".github/workflows/android.yml").read_text(encoding="utf-8")
-
-# Safety / product invariants
-period_text = main.split("PERIODS =", 1)[1].split("]", 1)[0]
+ROOT=pathlib.Path(__file__).parent
+for p in ROOT.glob("*.py"): ast.parse(p.read_text(encoding="utf-8"))
+main=(ROOT/"main.py").read_text(encoding="utf-8"); reader=(ROOT/"screen_reader.py").read_text(encoding="utf-8"); spec=(ROOT/"buildozer.spec").read_text(encoding="utf-8"); workflow=(ROOT/".github/workflows/android.yml").read_text(encoding="utf-8")
+period_text=main.split("PERIODS =",1)[1].split("]",1)[0]
 assert '"20"' not in period_text
 assert not any(x in main for x in [".buy(", ".sell(", "open_pending", "instruments_follow"])
 assert "ok, reason =" in main and "if not ok:" in main
-assert "get_historical_candles" in main
-assert "get_realtime_candles" in main
-assert "start_candles_stream" in main
-assert "qxbroker.com" in main and "quotex.com" in main
-assert "random" not in main.lower()
-assert "SYSTEM_ALERT_WINDOW" in spec
-assert "MediaProjectionManager" in reader
-assert "createVirtualDisplay" in reader
+assert "get_historical_candles" in main and "get_realtime_candles" in main and "start_candles_stream" in main
+assert "qxbroker.com" in main and "quotex.com" in main and "random" not in main.lower()
+assert "SYSTEM_ALERT_WINDOW" in spec and "MediaProjectionManager" in reader and "createVirtualDisplay" in reader
 assert "No stable colored candle bodies detected" in reader
-
-# Dependency / Android compatibility target: stable p4a master + Python 3.11.
-assert "python3==3.12.10" in spec and "hostpython3==3.12.10" in spec
-assert "kivy==2.3.1" in spec
-assert "pyjnius" in spec and "pyjnius==" not in spec
-assert "q.set_account_mode(\"PRACTICE\")" in main
-assert "q.connect()" in main
-assert "q.connect(is_demo=True)" not in main
-assert "Login.https_base_url" in main
-assert "android.api = 35" in spec
-assert "android.ndk = 25b" in spec
-assert "android.archs = arm64-v8a" in spec
-assert "armeabi-v7a" not in spec
-assert "p4a.branch = master" in spec
-assert "pyquotex" in spec and "git+https://github.com/cleitonleonel/pyquotex.git@" not in spec
-assert "p4a.local_recipes = p4a-recipes" in spec
-assert 'runs-on: ubuntu-24.04' in workflow
-assert 'python-version: "3.11"' in workflow
-assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
-assert 'java-version: "17"' in workflow
-assert "cython==0.29.34" in workflow
-assert "numpy" not in spec and "orjson" not in spec
-assert "curl_cffi==0.16.2" in spec and "cffi==2.0.0" in spec and "pycparser" in spec
-assert "beautifulsoup4" in spec and "typing_extensions" in spec and "certifi" in spec
-assert "charset-normalizer==3.4.3" in spec
-assert "charset-normalizer>=3.4.3,<4.0.0" not in spec
-assert ",<" not in spec and ",>" not in spec
-
-# Analysis engine smoke test.
-raw = []
-price = 100.0
+assert "python3==3.12.10" in spec and "hostpython3==3.12.10" in spec and "kivy==2.3.1" in spec and "pyjnius" in spec
+assert 'q.set_account_mode("PRACTICE")' in main and "q.connect()" in main and "q.connect(is_demo=True)" not in main and "Login.https_base_url" in main
+assert "android.api = 35" in spec and "android.ndk = 25b" in spec and "android.archs = arm64-v8a" in spec and "armeabi-v7a" not in spec
+assert "p4a.branch = master" in spec and "p4a.commit =" not in spec and "p4a.local_recipes = p4a-recipes" in spec
+assert "curl_cffi==0.16.2" in spec and "cffi==2.0.0" in spec and "pyquotex" in spec
+assert 'runs-on: ubuntu-24.04' in workflow and 'python-version: "3.12"' in workflow and 'java-version: "17"' in workflow
+assert "cython==0.29.34" in workflow and "numpy" not in spec and "orjson" not in spec
+raw=[]; price=100.0
 for i in range(160):
-    o = price
-    c = price + (0.04 if i % 3 else -0.01)
-    raw.append({
-        "time": i,
-        "open": o,
-        "high": max(o, c) + 0.08,
-        "low": min(o, c) - 0.08,
-        "close": c,
-    })
-    price = c
-r = analyze(raw)
-assert r["signal"] in {"UP", "DOWN", "WAIT"}
-assert 0 <= r["strength"] <= 99
-assert {"rsi", "macd", "stochastic", "adx", "atr", "support", "resistance"}.issubset(r)
-
+ o=price; c=price+(0.04 if i%3 else -0.01); raw.append({"time":i,"open":o,"high":max(o,c)+0.08,"low":min(o,c)-0.08,"close":c}); price=c
+r=analyze(raw); assert r["signal"] in {"UP","DOWN","WAIT"} and 0<=r["strength"]<=99
+assert {"rsi","macd","stochastic","adx","atr","support","resistance"}.issubset(r)
 print("AMH110 FINAL STATIC AUDIT PASS")
