@@ -66,9 +66,7 @@ jobs:
           export ANDROID_NDK_HOME="$NDK"
           export ANDROID_NDK_ROOT="$NDK"
           export ANDROIDNDK="$NDK"
-          export PATH="$LLVM:$PATH"
-
-          unset CC CXX LD AR RANLIB STRIP
+          # Do not prepend the Android LLVM bin directory to PATH.\n          # python-for-android selects target compilers itself; putting LLVM first\n          # can make configure/autoconf pick Android tools for host-side probes.\n\n          unset CC CXX LD AR RANLIB STRIP
 
           echo "ANDROID_NDK=$ANDROID_NDK"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
