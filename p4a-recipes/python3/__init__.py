@@ -9,4 +9,9 @@ class Python3Recipe(BasePython3Recipe):
         "ac_cv_func_getgrent=no",
     )
 
+    def apply_patches(self, arch, build_dir=None):
+        # The upstream patch set is version-sensitive; this local 3.12 recipe
+        # deliberately uses the clean CPython 3.12.10 source tree.
+        self.patches = []
+
 recipe = Python3Recipe()
