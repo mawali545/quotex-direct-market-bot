@@ -59,32 +59,24 @@ jobs:
           test -x "$LLVM/aarch64-linux-android24-clang++"
           test -x "$LLVM/ld.lld"
 
-          # Force every Android/Buildozer variable to the same NDK.
+          # Keep NDK paths available, but DO NOT export Android target compilers globally.
+          # Buildozer/python-for-android must compile hostpython3 with the Ubuntu host compiler
+          # and select the Android LLVM compiler only for the Android target.
           export ANDROID_NDK="$NDK"
           export ANDROID_NDK_HOME="$NDK"
           export ANDROID_NDK_ROOT="$NDK"
           export ANDROIDNDK="$NDK"
           export PATH="$LLVM:$PATH"
 
-          # Target-specific LLVM tools; do not replace the host linker.
-          export CC="$LLVM/aarch64-linux-android24-clang"
-          export CXX="$LLVM/aarch64-linux-android24-clang++"
-          export LD="$LLVM/ld.lld"
-          export AR="$LLVM/llvm-ar"
-          export RANLIB="$LLVM/llvm-ranlib"
-          export STRIP="$LLVM/llvm-strip"
-
-          ln -sf "$LLVM/ld.lld" "$LLVM/aarch64-linux-android-ld"
-          ln -sf "$LLVM/ld.lld" "$LLVM/arm-linux-androideabi-ld"
+          unset CC CXX LD AR RANLIB STRIP
 
           echo "ANDROID_NDK=$ANDROID_NDK"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
           echo "ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT"
           echo "ANDROIDNDK=$ANDROIDNDK"
-          echo "CC=$CC"
-          echo "CXX=$CXX"
-          echo "LD=$LD"
-
+          echo "CC=${CC:-<host-default>}"
+          echo "CXX=${CXX:-<host-default>}"
+          echo "LD=${LD:-<host-default>}"
           buildozer -v android debug 2>&1 | tee build.log
 
       - name: Dump compiler diagnostics on failure
