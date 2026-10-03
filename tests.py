@@ -17,11 +17,11 @@ assert 'q.set_account_mode("PRACTICE")' in main and "q.connect()" in main and "q
 assert "android.api = 35" in spec and "android.ndk = 25b" in spec and "android.archs = arm64-v8a" in spec and "armeabi-v7a" not in spec
 assert "p4a.branch = master" in spec and "p4a.commit =" not in spec and "p4a.local_recipes = p4a-recipes" in spec
 assert "curl_cffi==0.16.2" in spec and "cffi==2.0.0" in spec and "pyquotex" in spec
-assert 'runs-on: ubuntu-24.04' in workflow and 'python-version: "3.12"' in workflow and 'java-version: "17"' in workflow
+assert 'runs-on: ubuntu-22.04' in workflow and 'python-version: "3.12"' in workflow and 'java-version: "17"' in workflow
 assert "cython==0.29.34" in workflow and "numpy" not in spec and "orjson" not in spec
 raw=[]; price=100.0
 for i in range(160):
  o=price; c=price+(0.04 if i%3 else -0.01); raw.append({"time":i,"open":o,"high":max(o,c)+0.08,"low":min(o,c)-0.08,"close":c}); price=c
 r=analyze(raw); assert r["signal"] in {"UP","DOWN","WAIT"} and 0<=r["strength"]<=99
 assert {"rsi","macd","stochastic","adx","atr","support","resistance"}.issubset(r)
-print("AMH110 FINAL STATIC AUDIT PASS")
+print("AMH112 FINAL STATIC AUDIT PASS")
