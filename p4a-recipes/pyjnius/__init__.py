@@ -9,7 +9,9 @@ from pythonforandroid.util import current_directory
 class PyjniusRecipe(Recipe):
     version = "1.7.0"
     url = "https://pypi.flet.dev/-/ver_1vxEAp/pyjnius-1.7.0-1-cp312-cp312-android_24_arm64_v8a.whl"
-    depends = ["python3", "android"]
+    # pyjnius' Android bridge is provided by the Android recipe itself;
+    # declaring android here creates an android -> pyjnius -> android cycle.
+    depends = ["python3"]
 
     def build_arch(self, arch):
         target = Path(self.ctx.get_python_install_dir(arch.arch))
