@@ -1,4 +1,4 @@
-name: AMH110 Final Audit + APK
+name: AMH111 Final Audit + APK
 on:
   push:
     branches: [main]
@@ -37,12 +37,17 @@ jobs:
       - name: Build debug APK
         run: |
           set -o pipefail
+          export ANDROID_LD=ld.lld
+          export LDFLAGS="-fuse-ld=lld"
+          if [ -n "${ANDROIDNDK:-}" ]; then
+            export PATH="$ANDROIDNDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
+          fi
           buildozer -v android debug 2>&1 | tee build.log
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: AMH110-FINAL-APK
+          name: AMH111-FINAL-APK
           path: |
             bin/*.apk
             bin/**/*.apk
@@ -51,6 +56,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: AMH110-FINAL-build-log
+          name: AMH111-FINAL-build-log
           path: build.log
           if-no-files-found: warn
