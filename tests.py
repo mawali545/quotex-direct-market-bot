@@ -28,7 +28,7 @@ assert "createVirtualDisplay" in reader
 assert "No stable colored candle bodies detected" in reader
 
 # Dependency / Android compatibility target: stable p4a master + Python 3.11.
-assert "python3==3.11.13" in spec and "hostpython3==3.11.13" in spec
+assert "python3==3.12.10" in spec and "hostpython3==3.12.10" in spec
 assert "kivy==2.3.1" in spec
 assert "pyjnius" in spec and "pyjnius==" not in spec
 assert "q.set_account_mode(\"PRACTICE\")" in main
@@ -49,7 +49,7 @@ assert "libncurses-dev" in workflow and "libncurses5-dev" not in workflow
 assert 'java-version: "17"' in workflow
 assert "cython==0.29.34" in workflow
 assert "numpy" not in spec and "orjson" not in spec
-assert "curl_cffi==0.16.3" in spec and "cffi" in spec and "pycparser" in spec
+assert "curl_cffi==0.16.2" in spec and "cffi==2.0.0" in spec and "pycparser" in spec
 assert "beautifulsoup4" in spec and "typing_extensions" in spec and "certifi" in spec
 assert "charset-normalizer==3.4.3" in spec
 assert "charset-normalizer>=3.4.3,<4.0.0" not in spec
