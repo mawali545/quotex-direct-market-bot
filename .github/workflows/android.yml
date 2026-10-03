@@ -38,6 +38,13 @@ jobs:
         run: |
           set -o pipefail
           unset LDFLAGS ANDROID_LD CC CXX AR RANLIB
+          NDK="$HOME/.buildozer/android/platform/android-ndk-r25b"
+          LLVM="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          test -x "$LLVM/ld.lld"
+          ln -sf "$LLVM/ld.lld" "$LLVM/aarch64-linux-android-ld"
+          ln -sf "$LLVM/ld.lld" "$LLVM/arm-linux-androideabi-ld"
+          ln -sf "$LLVM/ld.lld" "$LLVM/ld"
+          export PATH="$LLVM:$PATH"
           buildozer -v android debug 2>&1 | tee build.log
       - name: Upload APK
         if: success()
