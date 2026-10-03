@@ -38,6 +38,14 @@ jobs:
         run: |
           set -o pipefail
           unset LDFLAGS ANDROID_LD CC CXX AR RANLIB
+          unset LDFLAGS ANDROID_LD CC CXX AR RANLIB
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$ANDROID_HOME/cmdline-tools/bin/sdkmanager"; fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "ndk;25.1.8937393"
+          mkdir -p "$HOME/.buildozer/android/platform"
+          rm -rf "$HOME/.buildozer/android/platform/android-ndk-r25b"
+          ln -s "$ANDROID_HOME/ndk/25.1.8937393" "$HOME/.buildozer/android/platform/android-ndk-r25b"
           NDK="$HOME/.buildozer/android/platform/android-ndk-r25b"
           LLVM="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
           test -x "$LLVM/ld.lld"
