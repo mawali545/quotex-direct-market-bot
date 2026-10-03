@@ -1,4 +1,4 @@
-name: AMH112 Final Audit + APK
+name: AMH113 Final Audit + APK
 on:
   push:
     branches: [main]
@@ -43,7 +43,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: AMH111-FINAL-APK
+          name: AMH113-FINAL-APK
           path: |
             bin/*.apk
             bin/**/*.apk
@@ -52,6 +52,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: AMH111-FINAL-build-log
+          name: AMH113-FINAL-build-log
           path: build.log
           if-no-files-found: warn
