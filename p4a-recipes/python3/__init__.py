@@ -14,7 +14,7 @@ class Python3Recipe(BasePython3Recipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
-        env["CFLAGS"] = env.get("CFLAGS", "") + (
+        # NDK r25 uses compiler-rt/LLVM and does not ship the legacy GCC\n        # runtime library. Older p4a flags can inject -lgcc_s into libffi/CPython\n        # configure tests, causing Android linker failures. Remove that stale flag.\n        for key in ("LDFLAGS", "LIBS", "LDLIBS"):\n            env[key] = env.get(key, "").replace(" -lgcc_s", "").replace("-lgcc_s ", "").replace("-lgcc_s", "")\n\n        env["CFLAGS"] = env.get("CFLAGS", "") + (
             " -Wno-error=implicit-function-declaration"
             " -Dsetgrent(...)=((void)0)"
             " -Dendgrent(...)=((void)0)"
