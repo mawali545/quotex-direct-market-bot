@@ -6,15 +6,22 @@ class Python3Recipe(BasePython3Recipe):
     patches = []
     configure_args = BasePython3Recipe.configure_args + (
         "--with-build-python={python_host_bin}",
-        "ac_cv_header_grp_h=no",
         "ac_cv_func_getgrent=no",
         "ac_cv_func_setgrent=no",
         "ac_cv_func_endgrent=no",
+        "ac_cv_func_getgrouplist=no",
+        "ac_cv_func_initgroups=no",
     )
 
     def apply_patches(self, arch, build_dir=None):
-        # Keep the clean CPython 3.12.10 source tree; the upstream p4a
-        # patch set is version-specific and is not present in this local recipe.
         self.patches = []
+
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+        env = super().get_recipe_env(arch, with_flags_in_cc)
+        # Android bionic exposes some group APIs differently from glibc.
+        # CPython 3.12 otherwise treats the missing declarations as fatal.
+        env["CFLAGS"] = env.get("CFLAGS", "") + " -Wno-error=implicit-function-declaration"
+        env["CPPFLAGS"] = env.get("CPPFLAGS", "") + " -D_GNU_SOURCE"
+        return env
 
 recipe = Python3Recipe()
