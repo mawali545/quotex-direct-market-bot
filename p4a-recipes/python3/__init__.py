@@ -6,12 +6,15 @@ class Python3Recipe(BasePython3Recipe):
     patches = []
     configure_args = BasePython3Recipe.configure_args + (
         "--with-build-python={python_host_bin}",
+        "ac_cv_header_grp_h=no",
         "ac_cv_func_getgrent=no",
+        "ac_cv_func_setgrent=no",
+        "ac_cv_func_endgrent=no",
     )
 
     def apply_patches(self, arch, build_dir=None):
-        # The upstream patch set is version-sensitive; this local 3.12 recipe
-        # deliberately uses the clean CPython 3.12.10 source tree.
+        # Keep the clean CPython 3.12.10 source tree; the upstream p4a
+        # patch set is version-specific and is not present in this local recipe.
         self.patches = []
 
 recipe = Python3Recipe()
