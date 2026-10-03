@@ -11,6 +11,7 @@ class Python3Recipe(BasePython3Recipe):
         "ac_cv_func_endgrent=no",
         "ac_cv_func_getgrouplist=no",
         "ac_cv_func_initgroups=no",
+        "ac_cv_module_grp=no",
     )
 
     def apply_patches(self, arch, build_dir=None):
@@ -21,7 +22,7 @@ class Python3Recipe(BasePython3Recipe):
         # Android bionic exposes some group APIs differently from glibc.
         # CPython 3.12 otherwise treats the missing declarations as fatal.
         env["CFLAGS"] = env.get("CFLAGS", "") + " -Wno-error=implicit-function-declaration"
-        env["CPPFLAGS"] = env.get("CPPFLAGS", "") + " -D_GNU_SOURCE"
+        env["CPPFLAGS"] = env.get("CPPFLAGS", "") + " -D_GNU_SOURCE -UHAVE_GETGROUPLIST -UHAVE_INITGROUPS"
         return env
 
 recipe = Python3Recipe()
