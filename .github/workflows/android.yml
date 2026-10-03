@@ -53,7 +53,7 @@ jobs:
           # Buildozer defaults to this SDK location; point it at the fully provisioned runner SDK.
           ln -sfn "$ANDROID_HOME" "$HOME/.buildozer/android/platform/android-sdk"
           export ANDROIDSDK="$ANDROID_HOME"
-          rm -rf "$HOME/.buildozer/android/platform/android-ndk-r25b"
+          # Buildozer 1.6 still looks for the legacy SDK tools/bin/sdkmanager path.\n          # Point that legacy path at the current cmdline-tools sdkmanager.\n          mkdir -p "$ANDROID_HOME/tools/bin"\n          ln -sfn "$SDKMANAGER" "$ANDROID_HOME/tools/bin/sdkmanager"\n          test -x "$ANDROID_HOME/tools/bin/sdkmanager"\n          rm -rf "$HOME/.buildozer/android/platform/android-ndk-r25b"
           ln -s "$ANDROID_HOME/ndk/25.1.8937393" "$HOME/.buildozer/android/platform/android-ndk-r25b"
 
           NDK="$HOME/.buildozer/android/platform/android-ndk-r25b"
