@@ -1,11 +1,11 @@
-name: AMH111 Final Audit + APK
+name: AMH112 Final Audit + APK
 on:
   push:
     branches: [main]
   workflow_dispatch:
 jobs:
   audit-build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
       - name: Checkout
@@ -22,7 +22,7 @@ jobs:
       - name: Android build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake autopoint libtool libltdl-dev libffi-dev libssl-dev pkg-config zlib1g-dev libncurses-dev libncursesw5-dev libtinfo6 cmake gettext build-essential lld llvm
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake autopoint libtool libltdl-dev libffi-dev libssl-dev pkg-config zlib1g-dev libncurses-dev libncursesw5-dev libtinfo6 cmake gettext build-essential
       - name: Python build tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
@@ -37,11 +37,7 @@ jobs:
       - name: Build debug APK
         run: |
           set -o pipefail
-          export ANDROID_LD=ld.lld
-          export LDFLAGS="-fuse-ld=lld"
-          if [ -n "${ANDROIDNDK:-}" ]; then
-            export PATH="$ANDROIDNDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
-          fi
+          unset LDFLAGS ANDROID_LD CC CXX AR RANLIB
           buildozer -v android debug 2>&1 | tee build.log
       - name: Upload APK
         if: success()
