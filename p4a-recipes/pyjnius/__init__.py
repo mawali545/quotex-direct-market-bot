@@ -8,7 +8,7 @@ from pythonforandroid.util import current_directory
 
 class PyjniusRecipe(Recipe):
     version = "1.7.0"
-    url = "https://pypi.flet.dev/-/ver_pyjnius_17_1/pyjnius-1.7.0-1-cp312-cp312-android_24_arm64_v8a.whl"
+    url = "https://pypi.flet.dev/-/ver_1vxEAp/pyjnius-1.7.0-1-cp312-cp312-android_24_arm64_v8a.whl"
     depends = ["python3", "android"]
 
     def build_arch(self, arch):
