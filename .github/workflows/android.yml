@@ -47,9 +47,12 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$ANDROID_HOME/cmdline-tools/bin/sdkmanager"; fi
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "ndk;25.1.8937393"
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;25.1.8937393"
 
           mkdir -p "$HOME/.buildozer/android/platform"
+          # Buildozer defaults to this SDK location; point it at the fully provisioned runner SDK.
+          ln -sfn "$ANDROID_HOME" "$HOME/.buildozer/android/platform/android-sdk"
+          export ANDROIDSDK="$ANDROID_HOME"
           rm -rf "$HOME/.buildozer/android/platform/android-ndk-r25b"
           ln -s "$ANDROID_HOME/ndk/25.1.8937393" "$HOME/.buildozer/android/platform/android-ndk-r25b"
 
@@ -66,7 +69,7 @@ jobs:
           export ANDROID_NDK_HOME="$NDK"
           export ANDROID_NDK_ROOT="$NDK"
           export ANDROIDNDK="$NDK"
-          # Do not prepend the Android LLVM bin directory to PATH.\n          # python-for-android selects target compilers itself; putting LLVM first\n          # can make configure/autoconf pick Android tools for host-side probes.\n\n          unset CC CXX LD AR RANLIB STRIP
+          # Do not prepend the Android LLVM bin directory to PATH.\n          # python-for-android selects target compilers itself.\n\n          unset CC CXX LD AR RANLIB STRIP
 
           echo "ANDROID_NDK=$ANDROID_NDK"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
